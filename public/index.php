@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 define('ROUTER_INCLUDED', true);
-require_once __DIR__ . '/get-media.php';
+require_once __DIR__ . '/../storage/get-media.php';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../api/helpers.php';
 require_once __DIR__ . '/../api/schema/tables.php';
@@ -23,6 +23,6 @@ $uri = preg_replace("#^$basePath/#", '', $uri);
 $method = $_SERVER['REQUEST_METHOD'];
 
 
-require_once __DIR__ . '/api-route/route.php';
+require_once __DIR__ . '/../api/api-route/route.php';
 
 ?>

@@ -1,9 +1,10 @@
 <?php
-require_once __DIR__ . '/../../api/verify-each-request.php';
+require_once __DIR__ . '/../verify-each-request.php';
+
 // Simple Router
 switch ($uri) {
     case 'users':
-        require_once __DIR__ . '/../../api/users.php';
+        require_once __DIR__ . '/../users.php';
         if ($method === 'GET') {
             if (isset($_GET['id'])) {
                 $user = get_user_by_id($_GET['id']);
@@ -16,7 +17,7 @@ switch ($uri) {
         break;
 
     case 'products':
-        require_once __DIR__ . '/../../api/products.php';
+        require_once __DIR__ . '/../products.php';
         if ($method === 'GET') {
             send_json(get_products());
         }

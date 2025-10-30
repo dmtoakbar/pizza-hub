@@ -5,8 +5,8 @@ $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
 if (str_contains($uri, 'storage/')) {
 
-    $filePath = realpath(__DIR__ . '/../' . $uri);
-    $storageRoot = realpath(__DIR__ . '/../storage');
+   $storageRoot = realpath(__DIR__);
+   $filePath = realpath($storageRoot . '/' . str_replace('storage/', '', $uri));
 
     if ($filePath === false || strpos($filePath, $storageRoot) !== 0) {
         http_response_code(403);
@@ -25,3 +25,10 @@ if (str_contains($uri, 'storage/')) {
     exit;
 }
 ?>
+
+
+
+
+
+
+
