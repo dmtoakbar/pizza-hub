@@ -25,4 +25,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 require_once __DIR__ . '/../api/api-route/route.php';
 
+
+send_json(['error' => 'Invalid route'], 404);
+
 ?>

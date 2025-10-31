@@ -2,6 +2,24 @@
 require_once __DIR__ . '/../verify-each-request.php';
 
 // Simple Router
+if (str_contains($uri, 'api-work/v1')) {
+
+if (preg_match('#api-work/(v\d+)/(.*)#', $uri, $matches)) {
+    $apiVersion = $matches[1]; // "v1"
+    $uri = $matches[2];        // "users"
+
+
+    // ✅ Supported versions
+    $allowedVersions = ['v1', 'v2'];
+
+    if (!in_array($apiVersion, $allowedVersions)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Unsupported API version']);
+        exit;
+    }
+
+}
+
 switch ($uri) {
     case 'users':
         require_once __DIR__ . '/../users.php';
@@ -26,4 +44,6 @@ switch ($uri) {
     default:
         send_json(['error' => 'Invalid route'], 404);
 }
+
+ }
 ?>

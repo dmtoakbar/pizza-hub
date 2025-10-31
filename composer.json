@@ -1,0 +1,32 @@
+{
+    "name": "amit_verma/api-structure",
+    "description": "Modular PHP API structure with PSR-4 autoloading",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "AmitVerma\\ApiStructure\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Amit Verma",
+            "email": "dmtoabar@gmail.com"
+        }
+    ],
+    "require": {
+        "ramsey/uuid": "^4.9"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@composer dump-autoload --optimize"
+        ],
+        "post-update-cmd": [
+            "@composer dump-autoload --optimize"
+        ]
+    }
+}

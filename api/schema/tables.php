@@ -5,7 +5,7 @@ function createTables($conn) {
     // --- Users Table ---
     $userTable = "
     CREATE TABLE IF NOT EXISTS users (
-        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+        id CHAR(36) PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
@@ -17,7 +17,7 @@ function createTables($conn) {
     // --- Products Table ---
     $productTable = "
     CREATE TABLE IF NOT EXISTS products (
-        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+        id CHAR(36) PRIMARY KEY,
         name VARCHAR(150) NOT NULL,
         price DECIMAL(10,2) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -28,7 +28,7 @@ function createTables($conn) {
     // --- API Keys Table ---
     $apiTable = "
     CREATE TABLE IF NOT EXISTS api_keys (
-        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+        id CHAR(36) PRIMARY KEY,
         api_key VARCHAR(255) NOT NULL UNIQUE,
         owner VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
