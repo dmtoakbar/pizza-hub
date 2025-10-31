@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../config/verify-each-request.php';
 
-function createTables($conn) {
+function createTables($conn)
+{
     // --- Users Table ---
     $userTable = "
     CREATE TABLE IF NOT EXISTS users (
@@ -13,6 +14,20 @@ function createTables($conn) {
     ) ENGINE=InnoDB;
     ";
     $conn->query($userTable);
+
+    $emailVerificationTable = "
+    CREATE TABLE IF NOT EXISTS email_verifications (
+    id CHAR(36) PRIMARY KEY
+    user_id CHAR(36) NOT NULL,
+    uid CHAR(36) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    verified TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_uid_token (uid, token)
+    ) ENGINE=InnoDB
+    ";
 
     // --- Products Table ---
     $productTable = "

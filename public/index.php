@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 define('ROUTER_INCLUDED', true);
-require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../config/constants/constants.php';
 
 $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
