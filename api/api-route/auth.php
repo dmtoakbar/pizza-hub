@@ -12,6 +12,15 @@ switch ($uri) {
         }
         break;
 
+    case 'auth/login':
+         require_once __DIR__ . '/../features/auth/login/login.php';
+        if ($method === 'POST') {
+            send_json(loginUser());
+        } else {
+            send_json(['error' => 'Method'], 404);
+        }
+        break;
+
     case 'auth/otp':
         require_once __DIR__ . '/../features/auth/otp/send-otp.php';
         send_json(sendOtp());

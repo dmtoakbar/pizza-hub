@@ -3,6 +3,8 @@ require_once __DIR__ . '/../../../../config/verify-each-request.php';
 require_once __DIR__ . '/../../../../vendor/autoload.php';
 require_once __DIR__ . '/../../../../config/database.php';
 
+use Ramsey\Uuid\Uuid;
+
 function loginUser()
 {
     global $conn;
@@ -61,18 +63,35 @@ function loginUser()
         $update->close();
     }
 
-    // ✅ Create simple session or token (example using UUID)
-    $sessionToken = bin2hex(random_bytes(32)); // secure 64-char token
+    // Generate new session details
+    $sessionId = Uuid::uuid4()->toString();
+    $sessionToken = bin2hex(random_bytes(32));
     $expiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
 
-    // Optionally store session in DB
-    $tokenStmt = $conn->prepare("INSERT INTO user_sessions (user_id, token, expires_at) VALUES (?, ?, ?)");
-    if ($tokenStmt) {
-        $tokenStmt->bind_param('sss', $user['id'], $sessionToken, $expiry);
-        $tokenStmt->execute();
-        $tokenStmt->close();
-    }
+    // ✅ Check if a session already exists for the user
+    $check = $conn->prepare("SELECT id FROM user_sessions WHERE user_id = ? LIMIT 1");
+    $check->bind_param('s', $user['id']);
+    $check->execute();
+    $result = $check->get_result();
 
+    if ($result->num_rows > 0) {
+        // ✅ Update existing session
+        $existing = $result->fetch_assoc();
+        $check->close();
+
+        $update = $conn->prepare("UPDATE user_sessions SET token = ?, expires_at = ? WHERE id = ?");
+        $update->bind_param('sss', $sessionToken, $expiry, $existing['id']);
+        $update->execute();
+        $update->close();
+    } else {
+        // ✅ Create new session
+        $check->close();
+
+        $insert = $conn->prepare("INSERT INTO user_sessions (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)");
+        $insert->bind_param('ssss', $sessionId, $user['id'], $sessionToken, $expiry);
+        $insert->execute();
+        $insert->close();
+    }
     // ✅ Successful login
     return [
         'success' => true,
@@ -86,5 +105,3 @@ function loginUser()
         'expires_at' => $expiry
     ];
 }
-
-?>

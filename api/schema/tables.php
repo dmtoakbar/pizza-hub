@@ -15,19 +15,33 @@ function createTables($conn)
     ";
     $conn->query($userTable);
 
-    $emailVerificationTable = "
+   $emailVerificationTable = "
     CREATE TABLE IF NOT EXISTS email_verifications (
-    id CHAR(36) PRIMARY KEY
-    user_id CHAR(36) NOT NULL,
-    uid CHAR(36) NOT NULL,
-    token VARCHAR(255) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    verified TINYINT(1) NOT NULL DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_uid_token (uid, token)
-    ) ENGINE=InnoDB
+        id CHAR(36) PRIMARY KEY,
+        user_id CHAR(36) NOT NULL,
+        uid CHAR(36) NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        verified TINYINT(1) NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_email_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_uid_token (uid, token)
+    ) ENGINE=InnoDB;
     ";
+    $conn->query($emailVerificationTable);
+
+
+    $userSessionTable = "
+    CREATE TABLE IF NOT EXISTS user_sessions (
+        id CHAR(36) NOT NULL PRIMARY KEY,
+        user_id CHAR(36) NOT NULL,
+        token VARCHAR(255) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NULL,
+        CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB;
+    ";
+    $conn->query($userSessionTable);
 
     // --- Products Table ---
     $productTable = "

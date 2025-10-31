@@ -2,12 +2,11 @@
 require_once __DIR__ . '/../../config/constants/constants.php';
 require_once __DIR__ . '/../../config/verify-each-request.php';
 
-// Simple Router
 if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
 
     if (preg_match("#$apiBasePath/(v\d+)/(.*)#", $uri, $matches)) {
-        $apiVersion = $matches[1]; // "v1"
-        $uri = $matches[2];        // "users"
+        $apiVersion = $matches[1]; 
+        $uri = $matches[2];      
 
         if (!in_array($apiVersion, $allowedVersions)) {
             http_response_code(400);
