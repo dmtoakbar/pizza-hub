@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/verify-each-request.php';  
+require_once __DIR__ . '/../config/verify-each-request.php';  
 
 function get_users() {
     return [

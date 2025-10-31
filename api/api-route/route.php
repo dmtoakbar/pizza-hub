@@ -1,16 +1,13 @@
 <?php
-require_once __DIR__ . '/../verify-each-request.php';
+require_once __DIR__ . '/../../config/constants.php';
+require_once __DIR__ . '/../../config/verify-each-request.php';
 
 // Simple Router
-if (str_contains($uri, 'api-work/v1')) {
+if (str_contains($uri, "$apiBasePath/".$allowedVersions[0])) {
 
-if (preg_match('#api-work/(v\d+)/(.*)#', $uri, $matches)) {
+if (preg_match("#$apiBasePath/(v\d+)/(.*)#", $uri, $matches)) {
     $apiVersion = $matches[1]; // "v1"
     $uri = $matches[2];        // "users"
-
-
-    // ✅ Supported versions
-    $allowedVersions = ['v1', 'v2'];
 
     if (!in_array($apiVersion, $allowedVersions)) {
         http_response_code(400);

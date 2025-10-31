@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../../../vendor/autoload.php';
 use Ramsey\Uuid\Uuid;
 
 // Connect to DB
-require_once __DIR__ . '/../../../../config/config.php';
+require_once __DIR__ . '/../../../../config/index.php';
 
 // Read JSON input
 $data = json_decode(file_get_contents('php://input'), true);
