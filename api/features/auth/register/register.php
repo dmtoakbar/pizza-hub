@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../../../config/verify-each-request.php'; 
+require_once __DIR__ . '/../../../../config/verify-each-request.php';
 require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 use Ramsey\Uuid\Uuid;
@@ -11,6 +11,10 @@ function registerUser()
     global $conn;
 
     $data = json_decode(file_get_contents('php://input'), true);
+
+    if (!$data) {
+        $data = $_POST;
+    }
 
     $name = isset($data['name']) ? trim($data['name']) : '';
     $email = isset($data['email']) ? trim($data['email']) : '';

@@ -11,6 +11,10 @@ function loginUser()
 
     $data = json_decode(file_get_contents('php://input'), true);
 
+    if (!$data) {
+        $data = $_POST;
+    }
+
     $email = isset($data['email']) ? trim($data['email']) : '';
     $password = isset($data['password']) ? $data['password'] : '';
 
