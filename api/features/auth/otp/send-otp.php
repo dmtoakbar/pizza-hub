@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../../../core/mail/send_mail.php';
 require_once __DIR__ . '/../../../../config/constants/otp-email-templates.php';
 
-function sendOtp($to = 'amitit33@gmail.com', $subject = 'verify your email from StudyLearn', $length = 6)
+function sendOtp($to = 'amitit33@gmail.com', $subject = 'verify your email from Pizza Hub', $length = 6)
 {
 
     // Generate OTP (numeric only)

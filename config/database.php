@@ -3,11 +3,12 @@
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'myapp');
+define('DB_NAME', 'pizza_hub');
+define('DB_PORT', 3306);
 
 
 // Create connection
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
 // Check connection
 if ($conn->connect_error) {

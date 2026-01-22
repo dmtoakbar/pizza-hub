@@ -5,31 +5,32 @@ require_once __DIR__ . '/../../config/verify-each-request.php';
 switch ($uri) {
     case 'auth/register':
         require_once __DIR__ . '/../features/auth/register/register.php';
-        if ($method === 'POST') {
-            send_json(registerUser());
-        } else {
-            send_json(['error' => 'Method'], 404);
-        }
+        send_json(registerUser());
         break;
 
     case 'auth/login':
-         require_once __DIR__ . '/../features/auth/login/login.php';
-        if ($method === 'POST') {
+        require_once __DIR__ . '/../features/auth/login/login.php';
             send_json(loginUser());
-        } else {
-            send_json(['error' => 'Method'], 404);
-        }
         break;
 
-    case 'auth/otp':
-        require_once __DIR__ . '/../features/auth/otp/send-otp.php';
-        send_json(sendOtp());
+    case 'auth/get-user':
+        require_once __DIR__ . '/../features/auth/get-user/get_user_by_id.php';
+        send_json(getUserById());
         break;
 
-    case 'products':
-        require_once __DIR__ . '/../products.php';
-        if ($method === 'GET') {
-        }
+    case 'auth/send-reset-password-otp':
+        require_once __DIR__ . '/../features/auth/forget-password/send_password_reset_otp.php';
+        send_json(sendPasswordResetOtp());
+        break;
+
+    case 'auth/verify-reset-password-otp':
+        require_once __DIR__ . '/../features/auth/forget-password/verify-opt-and-reset-password.php';
+        send_json(verifyOtpAndResetPassword());
+        break;
+
+    case 'auth/update-user':
+        require_once __DIR__ . '/../features/auth/update-user/update-user.php';
+        send_json(updateUser());
         break;
 
     default:

@@ -5,8 +5,8 @@ require_once __DIR__ . '/../../config/verify-each-request.php';
 if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
 
     if (preg_match("#$apiBasePath/(v\d+)/(.*)#", $uri, $matches)) {
-        $apiVersion = $matches[1]; 
-        $uri = $matches[2];      
+        $apiVersion = $matches[1];
+        $uri = $matches[2];
 
         if (!in_array($apiVersion, $allowedVersions)) {
             http_response_code(400);
@@ -34,11 +34,39 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             break;
 
         case 'products':
-            require_once __DIR__ . '/../products.php';
-            if ($method === 'GET') {
-            }
+            require_once __DIR__ . '/../features/product/get-product.php';
+            send_json(getProducts());
             break;
 
+        case 'contact-us':
+            require_once __DIR__ . '/../features/contactUs/contact-us.php';
+            send_json(contactUs());
+            break;
+
+        case 'report-issue':
+            require_once __DIR__ . '/../features/report/report.php';
+            send_json(submitReport());
+            break;
+
+        case 'place-order':
+            require_once __DIR__ . '/../features/orders/place-order/place-order.php';
+            send_json(placeOrder());
+            break;
+
+        case 'order-history':
+            require_once __DIR__ . '/../features/orders/history/history.php';
+            send_json(getOrderHistory());
+            break;
+
+        case 'order-detail':
+            require_once __DIR__ . '/../features/orders/order-detail/get_order_details.php';
+            send_json(getOrderDetails());
+            break;
+
+        case 'order-status':
+            require_once __DIR__ . '/../features/orders/order-status/order-status.php';
+            send_json(getOrderStatus());
+            break;
         default:
             send_json(['error' => 'Invalid route'], 404);
     }
