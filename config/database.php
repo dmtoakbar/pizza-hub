@@ -2,7 +2,7 @@
 // Optional: database or other configurations
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'root');
 define('DB_NAME', 'pizza_hub');
 define('DB_PORT', 3306);
 
