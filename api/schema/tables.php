@@ -194,6 +194,24 @@ function createTables($conn)
         throw new Exception("Products table error: " . $conn->error);
     }
 
+    $extraToppingsTable = "
+    CREATE TABLE IF NOT EXISTS extra_toppings (
+        id CHAR(36) NOT NULL PRIMARY KEY,
+
+        name VARCHAR(150) NOT NULL,
+        image VARCHAR(255) NOT NULL,
+        price DECIMAL(10,2) NOT NULL DEFAULT 0,
+
+        status TINYINT(1) DEFAULT 1 COMMENT '1 = active, 0 = inactive',
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB;
+    ";
+
+    if (!$conn->query($extraToppingsTable)) {
+        throw new Exception('Extra Toppings table error: ' . $conn->error);
+    }
 
     $orders = "
         CREATE TABLE IF NOT EXISTS orders (

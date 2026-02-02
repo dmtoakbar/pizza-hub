@@ -5,7 +5,8 @@ require_once __DIR__ . '/../../../../config/database.php';
 
 use Ramsey\Uuid\Uuid;
 
-function placeOrder() {
+function placeOrder()
+{
     global $conn;
 
     // Get incoming data
@@ -41,6 +42,11 @@ function placeOrder() {
         return ['success' => false, 'message' => 'User not found'];
     }
 
+
+    $name = $data['name'] ?? $user['name'];
+    $phone = $data['phone'] ?? $user['phone'];
+    $address = $data['address'] ?? $user['address'];
+
     // 3️⃣ Begin transaction
     mysqli_begin_transaction($conn);
 
@@ -57,10 +63,10 @@ function placeOrder() {
         $stmt->bind_param(
             'ssssss',
             $orderId,
-            $user['name'],
+            $name,
             $user['email'],
-            $user['phone'],
-            $user['address'],
+            $phone,
+            $address,
             $paymentMethod
         );
         $stmt->execute();
@@ -125,7 +131,6 @@ function placeOrder() {
             'order_id' => $orderId,
             'total_amount' => $totalAmount
         ];
-
     } catch (Exception $e) {
         mysqli_rollback($conn);
         http_response_code(500);

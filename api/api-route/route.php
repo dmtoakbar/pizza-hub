@@ -38,6 +38,11 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             send_json(getProducts());
             break;
 
+        case 'extra-toppings':
+            require_once __DIR__ . '/../features/extraToppings/extra-topping.php';
+            send_json(getExtraToppings());
+            break;
+
         case 'contact-us':
             require_once __DIR__ . '/../features/contactUs/contact-us.php';
             send_json(contactUs());
