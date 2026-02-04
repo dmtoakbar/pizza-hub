@@ -78,6 +78,56 @@
              </p>
            </a>
          </li>
+         <li class="nav-item">
+           <a href="page_editor.php?slug=refund-policy" class="nav-link">
+             <i class="nav-icon fas fa-undo-alt"></i>
+             <p>Refund Policy</p>
+           </a>
+         </li>
+
+         <li class="nav-item">
+           <a href="page_editor.php?slug=privacy-policy" class="nav-link">
+             <i class="nav-icon fas fa-user-shield"></i>
+             <p>Privacy Policy</p>
+           </a>
+         </li>
+
+         <li class="nav-item">
+           <a href="page_editor.php?slug=terms-conditions" class="nav-link">
+             <i class="nav-icon fas fa-file-contract"></i>
+             <p>Terms & Conditions</p>
+           </a>
+         </li>
+
+         <li class="nav-item">
+           <a href="page_editor.php?slug=shipping-policy" class="nav-link">
+             <i class="nav-icon fas fa-truck"></i>
+             <p>Shipping Policy</p>
+           </a>
+         </li>
+
+         <li class="nav-item">
+           <a href="page_editor.php?slug=cancellation-policy" class="nav-link">
+             <i class="nav-icon fas fa-times-circle"></i>
+             <p>Cancellation Policy</p>
+           </a>
+         </li>
+
+         <li class="nav-item">
+           <a href="page_editor.php?slug=about-us" class="nav-link">
+             <i class="nav-icon fas fa-info-circle"></i>
+             <p>About Us</p>
+           </a>
+         </li>
+
+         <li class="nav-item">
+           <a href="page_editor.php?slug=faq" class="nav-link">
+             <i class="nav-icon fas fa-question-circle"></i>
+             <p>FAQ</p>
+           </a>
+         </li>
+
+
          <li class="nav-header">All Users</li>
          <li class="nav-item">
            <a href="register.php" class="nav-link">

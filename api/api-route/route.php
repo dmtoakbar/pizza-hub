@@ -72,6 +72,11 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             require_once __DIR__ . '/../features/orders/order-status/order-status.php';
             send_json(getOrderStatus());
             break;
+            
+        case 'policy-pages':
+            require_once __DIR__ . '/../features/policyPage/policy-page.php';
+            send_json(getStaticPages());
+            break;
         default:
             send_json(['error' => 'Invalid route'], 404);
     }

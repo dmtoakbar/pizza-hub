@@ -194,6 +194,67 @@ function createTables($conn)
         throw new Exception("Products table error: " . $conn->error);
     }
 
+
+    $staticPagesTable = "
+    CREATE TABLE IF NOT EXISTS static_pages (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    title VARCHAR(150) NOT NULL,
+
+    content LONGTEXT NOT NULL,
+
+    status TINYINT(1) DEFAULT 1 COMMENT '1 = active, 0 = inactive',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+        ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB;
+    ";
+
+    if (!$conn->query($staticPagesTable)) {
+        throw new Exception('Static Pages table error: ' . $conn->error);
+    }
+
+    include('default-static-page-content.php');
+
+    foreach ($defaultPages as $slug => $page) {
+
+        $check = $conn->prepare(
+            "SELECT COUNT(*) FROM static_pages WHERE slug = ?"
+        );
+        $check->bind_param("s", $slug);
+        $check->execute();
+        $check->bind_result($exists);
+        $check->fetch();
+        $check->close();
+
+        if ($exists == 0) {
+
+            $pageId = Uuid::uuid4()->toString();
+
+            $stmt = $conn->prepare("
+            INSERT INTO static_pages (id, slug, title, content, status)
+            VALUES (?, ?, ?, ?, 1)
+        ");
+
+            $stmt->bind_param(
+                "ssss",
+                $pageId,
+                $slug,
+                $page['title'],
+                $page['content']
+            );
+
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+
+    // static page
+
+
     $extraToppingsTable = "
     CREATE TABLE IF NOT EXISTS extra_toppings (
         id CHAR(36) NOT NULL PRIMARY KEY,
