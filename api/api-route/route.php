@@ -38,6 +38,21 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             send_json(getProducts());
             break;
 
+         case 'home-banners':
+            require_once __DIR__ . '/../features/homeBanner/home-banner.php';
+            send_json(getHomeBanners());
+            break;
+
+         case 'product-category-list':
+            require_once __DIR__ . '/../features/produtCategory/get-product-category-list.php';
+            send_json(getCategories());
+            break;
+
+         case 'search':
+            require_once __DIR__ . '/../features/search/search.php';
+            send_json(advancedProductSearch());
+            break;
+
         case 'extra-toppings':
             require_once __DIR__ . '/../features/extraToppings/extra-topping.php';
             send_json(getExtraToppings());

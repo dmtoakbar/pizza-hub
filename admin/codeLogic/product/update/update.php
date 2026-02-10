@@ -1,24 +1,34 @@
 <?php
 session_start();
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
 require_once __DIR__ . '/../../../../config/database.php';
-require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 if (isset($_POST['updateProduct'])) {
 
+    /* =========================
+       INPUT
+    ========================== */
+    $id             = $_POST['id'];
+    $category_id    = trim($_POST['category_id']);
+    $name           = trim($_POST['name']);
+    $description    = trim($_POST['description']);
+    $price          = trim($_POST['price']);
+    $discount_price = trim($_POST['discount_price']);
+    $oldImage       = $_POST['old_image'];
 
+    $is_popular  = isset($_POST['is_popular']) ? 1 : 0;
+    $is_featured = isset($_POST['is_featured']) ? 1 : 0;
+    $status      = isset($_POST['status']) ? 1 : 0;
 
-    $id              = $_POST['id'];
-    $name            = trim($_POST['name']);
-    $price           = trim($_POST['price']);
-    $tag             = trim($_POST['tag']);
-    $tag_description = trim($_POST['tag_description']);
-    $oldImage        = $_POST['old_image'];
-
-    if ($name === '' || $price === '' || $tag === '' || $tag_description === '') {
-        $_SESSION['status'] = "All fields are required";
+    /* =========================
+       VALIDATION
+    ========================== */
+    if ($id === '' || $category_id === '' || $name === '' || $price === '') {
+        $_SESSION['status'] = "Required fields are missing";
         header("Location: ../../../product-edit.php?id=$id");
         exit;
     }
@@ -29,9 +39,17 @@ if (isset($_POST['updateProduct'])) {
         exit;
     }
 
-    $imagePath = $oldImage; // default → keep old image
+    if ($discount_price !== '' && !is_numeric($discount_price)) {
+        $_SESSION['status'] = "Invalid discount price";
+        header("Location: ../../../product-edit.php?id=$id");
+        exit;
+    }
 
-    // ✅ If new image uploaded
+    /* =========================
+       IMAGE HANDLING
+    ========================== */
+    $imagePath = $oldImage; // keep old image by default
+
     if (!empty($_FILES['image']['name'])) {
 
         $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
@@ -43,7 +61,7 @@ if (isset($_POST['updateProduct'])) {
             exit;
         }
 
-        $newImage = uniqid('product_', true) . '.' . $ext;
+        $newImage  = uniqid('product_', true) . '.' . $ext;
         $uploadDir = __DIR__ . '/../../../../storage/products/';
 
         if (!is_dir($uploadDir)) {
@@ -52,43 +70,57 @@ if (isset($_POST['updateProduct'])) {
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $newImage)) {
 
-            // delete old image (filesystem)
-            $oldFile = __DIR__ . '/../../../../storage/' . ltrim($oldImage, '/');
-            if (file_exists($oldFile)) {
-                unlink($oldFile);
+            // 🗑 delete old image
+            if (!empty($oldImage)) {
+                $oldFile = __DIR__ . '/../../../../storage/' . ltrim($oldImage, '/');
+                if (file_exists($oldFile)) {
+                    unlink($oldFile);
+                }
             }
 
             $imagePath = 'products/' . $newImage;
         }
     }
 
-    // ✅ Update DB
+    /* =========================
+       UPDATE DATABASE
+    ========================== */
     $query = "
-    UPDATE products SET
-        name = ?,
-        price = ?,
-        tag = ?,
-        tag_description = ?,
-        image = ?
-    WHERE id = ?
-";
+        UPDATE products SET
+            category_id    = ?,
+            name           = ?,
+            description    = ?,
+            price          = ?,
+            discount_price = ?,
+            image          = ?,
+            is_popular     = ?,
+            is_featured    = ?,
+            status         = ?
+        WHERE id = ?
+    ";
 
     $stmt = $conn->prepare($query);
     $stmt->bind_param(
-        "sdssss",
+        "sssddsiiis",
+        $category_id,
         $name,
+        $description,
         $price,
-        $tag,
-        $tag_description,
+        $discount_price,
         $imagePath,
+        $is_popular,
+        $is_featured,
+        $status,
         $id
     );
 
     if ($stmt->execute()) {
         $_SESSION['status'] = "Product updated successfully";
     } else {
-        $_SESSION['status'] = "Update failed";
+        $_SESSION['status'] = "Failed to update product";
     }
+
+    $stmt->close();
 
     header("Location: ../../../products.php");
     exit;

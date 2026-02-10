@@ -127,7 +127,7 @@ include('include/sidebar.php');
                                             <td><?= htmlspecialchars($row['id']); ?></td>
                                             <td><?= htmlspecialchars($row['username']); ?></td>
                                             <td><?= htmlspecialchars($row['phone']); ?></td>
-                                            <td>₹<?= number_format($row['total_amount'], 2); ?></td>
+                                            <td>$<?= number_format($row['total_amount'], 2); ?></td>
                                             <td><?= ucfirst(str_replace('_', ' ', $row['status'])); ?></td>
                                             <td><?= $row['created_at']; ?></td>
                                             <td>

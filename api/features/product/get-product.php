@@ -9,70 +9,75 @@ function getProducts()
 {
     global $conn;
 
-    // -------------------------
-    // Read query parameters
-    // -------------------------
-    $tag     = isset($_GET['tag']) ? trim($_GET['tag']) : '';
-    $search  = isset($_GET['search']) ? trim($_GET['search']) : '';
-    $limit   = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
-    $page    = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+    /* =========================
+       QUERY PARAMS
+    ========================== */
+    $categoryId = $_GET['category_id'] ?? '';
+    $isPopular  = isset($_GET['popular']) ? (int)$_GET['popular'] : null;
+    $isFeatured = isset($_GET['featured']) ? (int)$_GET['featured'] : null;
 
-    // Safety limits
-    $limit = ($limit > 0 && $limit <= 100) ? $limit : 20;
-    $page  = ($page > 0) ? $page : 1;
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+    $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+    $limit  = ($limit > 0 && $limit <= 100) ? $limit : 20;
+    $page   = ($page > 0) ? $page : 1;
     $offset = ($page - 1) * $limit;
 
-    // -------------------------
-    // Build dynamic query
-    // -------------------------
-    $conditions = [];
+    /* =========================
+       WHERE CONDITIONS
+    ========================== */
+    $conditions = ['status = 1']; // only active products
     $params = [];
-    $types = '';
+    $types  = '';
 
-    if ($tag !== '') {
-        $conditions[] = "tag = ?";
-        $params[] = $tag;
+    if (!empty($categoryId)) {
+        $conditions[] = 'category_id = ?';
+        $params[] = $categoryId;
         $types .= 's';
     }
 
-    if ($search !== '') {
-        $conditions[] = "(name LIKE ? OR tag_description LIKE ?)";
-        $params[] = "%$search%";
-        $params[] = "%$search%";
-        $types .= 'ss';
+    if ($isPopular !== null) {
+        $conditions[] = 'is_popular = ?';
+        $params[] = $isPopular;
+        $types .= 'i';
     }
 
-    $whereSQL = '';
-    if (!empty($conditions)) {
-        $whereSQL = 'WHERE ' . implode(' AND ', $conditions);
+    if ($isFeatured !== null) {
+        $conditions[] = 'is_featured = ?';
+        $params[] = $isFeatured;
+        $types .= 'i';
     }
 
-    // -------------------------
-    // Count total products
-    // -------------------------
-    $countSql = "SELECT COUNT(*) as total FROM products $whereSQL";
+    $whereSQL = 'WHERE ' . implode(' AND ', $conditions);
+
+    /* =========================
+       COUNT TOTAL
+    ========================== */
+    $countSql = "SELECT COUNT(*) AS total FROM products $whereSQL";
     $countStmt = $conn->prepare($countSql);
 
-    if ($types !== '') {
+    if (!empty($types)) {
         $countStmt->bind_param($types, ...$params);
     }
 
     $countStmt->execute();
-    $totalResult = $countStmt->get_result()->fetch_assoc();
-    $total = (int) $totalResult['total'];
+    $total = (int)$countStmt->get_result()->fetch_assoc()['total'];
     $countStmt->close();
 
-    // -------------------------
-    // Fetch products
-    // -------------------------
+    /* =========================
+       FETCH PRODUCTS
+    ========================== */
     $sql = "
-        SELECT 
+        SELECT
             id,
+            category_id,
             name,
+            description,
             price,
-            tag,
-            tag_description,
+            discount_price,
             image,
+            is_popular,
+            is_featured,
             created_at
         FROM products
         $whereSQL
@@ -82,11 +87,11 @@ function getProducts()
 
     $stmt = $conn->prepare($sql);
 
-    // Bind params dynamically
-    if ($types !== '') {
-        $typesWithLimit = $types . 'ii';
-        $paramsWithLimit = array_merge($params, [$limit, $offset]);
-        $stmt->bind_param($typesWithLimit, ...$paramsWithLimit);
+    if (!empty($types)) {
+        $types .= 'ii';
+        $params[] = $limit;
+        $params[] = $offset;
+        $stmt->bind_param($types, ...$params);
     } else {
         $stmt->bind_param('ii', $limit, $offset);
     }
@@ -97,21 +102,26 @@ function getProducts()
     $products = [];
     while ($row = $result->fetch_assoc()) {
         $products[] = [
-            'id' => $row['id'],
-            'name' => $row['name'],
-            'price' => (float) $row['price'],
-            'tag' => $row['tag'],
-            'tag_description' => $row['tag_description'],
-            'image' => $row['image'],
-            'created_at' => $row['created_at'],
+            'id'             => $row['id'],
+            'category_id'    => $row['category_id'],
+            'name'           => $row['name'],
+            'description'    => $row['description'],
+            'price'          => (float)$row['price'],
+            'discount_price' => $row['discount_price'] !== null
+                ? (float)$row['discount_price']
+                : null,
+            'image'          => $row['image'],
+            'is_popular'     => (bool)$row['is_popular'],
+            'is_featured'    => (bool)$row['is_featured'],
+            'created_at'     => $row['created_at'],
         ];
     }
 
     $stmt->close();
 
-    // -------------------------
-    // Final response
-    // -------------------------
+    /* =========================
+       RESPONSE
+    ========================== */
     return [
         'success' => true,
         'data' => $products,
@@ -123,5 +133,3 @@ function getProducts()
         ]
     ];
 }
-
-

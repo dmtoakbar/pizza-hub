@@ -40,24 +40,49 @@
            </a>
          </li>
 
-
          <li class="nav-item">
-           <a href="products.php" class="nav-link">
-             <i class="nav-icon fas fa-box-open"></i>
-             <p>
-               Products
-             </p>
+           <a href="home-banners.php" class="nav-link">
+             <i class="nav-icon fas fa-images"></i>
+             <p>Home Banners</p>
            </a>
          </li>
 
-         <li class="nav-item">
+         <li class="nav-item has-treeview">
+           <a href="#" class="nav-link active">
+             <i class="nav-icon fas fa-boxes"></i>
+             <p>
+               Products
+               <i class="right fas fa-angle-left"></i>
+             </p>
+           </a>
+
+           <ul class="nav nav-treeview" >
+             <li class="nav-item">
+               <a href="products.php" class="nav-link">
+                 <i class="nav-icon fas fa-box"></i>
+                 <p>Products</p>
+               </a>
+             </li>
+           </ul>
+
+           <ul class="nav nav-treeview">
+             <li class="nav-item">
+               <a href="categories.php" class="nav-link">
+                 <i class="nav-icon fas fa-tags"></i>
+                 <p>Categories</p>
+               </a>
+             </li>
+           </ul>
+         </li>
+
+         <!-- <li class="nav-item">
            <a href="toppings.php" class="nav-link">
              <i class="nav-icon fas fa-pizza-slice"></i>
              <p>
                Extra Toppings
              </p>
            </a>
-         </li>
+         </li> -->
 
 
          <li class="nav-item">

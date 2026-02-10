@@ -44,15 +44,25 @@ function statusBadge($status)
         default => 'dark'
     };
 }
+
+/* ✅ Size label helper */
+function formatPizzaSize(string $size): string
+{
+    return match (strtoupper($size)) {
+        'S' => 'Small',
+        'M' => 'Medium',
+        'L' => 'Large',
+        default => ucfirst($size),
+    };
+}
 ?>
 
 <div class="content-wrapper">
     <div class="container-fluid">
 
+        <?php include('./message/message.php'); ?>
+
         <!-- ================= HEADER ================= -->
-        <?php
-        include('./message/message.php');
-        ?>
         <div class="row mb-3">
             <div class="col-md-8">
                 <h3>
@@ -66,7 +76,7 @@ function statusBadge($status)
                 </small>
             </div>
             <div class="col-md-4 text-right">
-                <h4 class="text-success">₹<?= number_format($order['total_amount'], 2); ?></h4>
+                <h4 class="text-success">$<?= number_format($order['total_amount'], 2); ?></h4>
                 <span class="badge badge-<?= $order['payment_status'] == 'paid' ? 'success' : 'danger'; ?>">
                     <?= strtoupper($order['payment_status']); ?>
                 </span>
@@ -76,7 +86,6 @@ function statusBadge($status)
         <!-- ================= CUSTOMER + CONTROLS ================= -->
         <div class="row">
 
-            <!-- CUSTOMER INFO -->
             <div class="col-md-6">
                 <div class="card card-outline card-primary">
                     <div class="card-header"><strong>Customer Details</strong></div>
@@ -91,7 +100,6 @@ function statusBadge($status)
                 </div>
             </div>
 
-            <!-- ORDER CONTROLS -->
             <div class="col-md-6">
                 <div class="card card-outline card-info">
                     <div class="card-header"><strong>Order Controls</strong></div>
@@ -116,7 +124,7 @@ function statusBadge($status)
 
         </div>
 
-        <!-- ================= ORDER ITEMS TABLE ================= -->
+        <!-- ================= ORDER ITEMS ================= -->
         <div class="card mt-3">
             <div class="card-header bg-light">
                 <h5 class="mb-0">
@@ -136,6 +144,7 @@ function statusBadge($status)
                             <th>Price</th>
                             <th>Qty</th>
                             <th>Extras</th>
+                            <th>Size</th>
                             <th>Subtotal</th>
                         </tr>
                     </thead>
@@ -144,8 +153,11 @@ function statusBadge($status)
                         <?php
                         $i = 1;
                         $grandTotal = 0;
+
                         while ($item = $items->fetch_assoc()):
-                            $itemTotal = $item['product_price'] * $item['quantity'];
+                            $basePrice = (float)$item['product_price'];
+                            $sizePrice = (float)$item['size_price'];
+                            $quantity  = (int)$item['quantity'];
                             $extraTotal = 0;
                         ?>
                             <tr>
@@ -154,20 +166,23 @@ function statusBadge($status)
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <img src="<?= $item['product_image']; ?>"
-                                            width="60"
-                                            height="50"
-                                            class="rounded mr-2"
-                                            style="object-fit:cover">
+                                             width="60" height="50"
+                                             class="rounded mr-2"
+                                             style="object-fit:cover">
                                         <strong><?= htmlspecialchars($item['product_name']); ?></strong>
                                     </div>
                                 </td>
 
-                                <td>₹<?= number_format($item['product_price'], 2); ?></td>
+                                <td>
+                                    $<?= number_format($basePrice + $sizePrice, 2); ?><br>
+                                    <small class="text-muted">
+                                        Base: $<?= number_format($basePrice, 2); ?> |
+                                        Size: $<?= number_format($sizePrice, 2); ?>
+                                    </small>
+                                </td>
 
                                 <td>
-                                    <span class="badge badge-info">
-                                        <?= $item['quantity']; ?>
-                                    </span>
+                                    <span class="badge badge-info"><?= $quantity; ?></span>
                                 </td>
 
                                 <td>
@@ -177,22 +192,31 @@ function statusBadge($status)
                                         echo '<span class="text-muted">—</span>';
                                     }
                                     while ($ex = $extras->fetch_assoc()):
-                                        $extraTotal += $ex['extra_price'];
+                                        $extraTotal += (float)$ex['extra_price'];
                                     ?>
                                         <span class="badge badge-light border mr-1">
-                                            <?= $ex['extra_name']; ?> (+₹<?= $ex['extra_price']; ?>)
+                                            <?= $ex['extra_name']; ?>
+                                            (+$<?= number_format($ex['extra_price'], 2); ?>)
                                         </span>
                                     <?php endwhile; ?>
                                 </td>
 
                                 <td>
-                                    <strong>
-                                        ₹<?= number_format($itemTotal + $extraTotal, 2); ?>
-                                    </strong>
+                                    <span class="badge badge-secondary">
+                                        <?= formatPizzaSize($item['size']); ?>
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <?php
+                                    $perItemPrice = $basePrice + $sizePrice + $extraTotal;
+                                    $subTotal = $perItemPrice * $quantity;
+                                    ?>
+                                    <strong>$<?= number_format($subTotal, 2); ?></strong>
                                 </td>
                             </tr>
 
-                            <?php $grandTotal += ($itemTotal + $extraTotal); ?>
+                            <?php $grandTotal += $subTotal; ?>
                         <?php endwhile; ?>
 
                     </tbody>
@@ -203,7 +227,7 @@ function statusBadge($status)
                 <h5>
                     Grand Total:
                     <span class="text-success">
-                        ₹<?= number_format($grandTotal, 2); ?>
+                        $<?= number_format($grandTotal, 2); ?>
                     </span>
                 </h5>
             </div>
@@ -212,59 +236,30 @@ function statusBadge($status)
     </div>
 </div>
 
-<?php
-include('include/script.php');
-?>
+<?php include('include/script.php'); ?>
 
 <script>
-    $(document).ready(function() {
+$('#orderStatus').on('change', function () {
+    $.post(
+        'codeLogic/orders/updateOrderStatus/update-order-status.php',
+        { id: '<?= $orderId ?>', status: $(this).val() },
+        function (res) {
+            const r = JSON.parse(res);
+            if (r.success) location.reload();
+        }
+    );
+});
 
-
-        $('#orderStatus').on('change', function() {
-
-            $.post(
-                'codeLogic/orders/updateOrderStatus/update-order-status.php', {
-                    id: '<?= $orderId ?>',
-                    status: $(this).val()
-                },
-                function(res) {
-                    const r = JSON.parse(res);
-                    if (r.success) {
-
-                        location.reload();
-
-                    } else {
-
-
-                    }
-                }
-            ).fail(() => {
-
-
-            });
-        });
-
-    });
-
-    $('#paymentStatus').on('change', function() {
-        $.post(
-            'codeLogic/orders/updatePaymentStatus/update-payment-status.php', {
-                id: '<?= $orderId ?>',
-                payment_status: $(this).val()
-            },
-            function(res) {
-                const r = JSON.parse(res);
-                if (r.success) {
-                    location.reload();
-                } else {
-
-                }
-            }
-        ).fail(() => {
-
-        });
-    });
+$('#paymentStatus').on('change', function () {
+    $.post(
+        'codeLogic/orders/updatePaymentStatus/update-payment-status.php',
+        { id: '<?= $orderId ?>', payment_status: $(this).val() },
+        function (res) {
+            const r = JSON.parse(res);
+            if (r.success) location.reload();
+        }
+    );
+});
 </script>
-
 
 <?php include('include/footer.php'); ?>

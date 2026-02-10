@@ -2,213 +2,226 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
 include('./authentication/authentication.php');
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/constants/constants.php';
+
 include('include/header.php');
 include('include/topbar.php');
 include('include/sidebar.php');
 ?>
-<!-- Content Wrapper. Contains page content -->
+
 <div class="content-wrapper">
 
-  <!-- User Modal -->
-  <div class="modal fade" id="AddCertificateModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+  <!-- ================= ADD PRODUCT MODAL ================= -->
+  <div class="modal fade" id="AddProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
+
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Add Product</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+          <h5 class="modal-title">Add Product</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
           </button>
         </div>
-        <form method="POST" action="codeLogic/product/add/add.php" enctype="multipart/form-data">
+
+        <form method="POST"
+              action="codeLogic/product/add/add.php"
+              enctype="multipart/form-data">
+
           <div class="modal-body">
+
+            <!-- CATEGORY -->
+            <div class="form-group">
+              <label>Category</label>
+              <select name="category_id" class="form-control" required>
+                <option value="">-- Select Category --</option>
+                <?php
+                $catQuery = mysqli_query($conn, "SELECT id, name FROM categories WHERE status = 1");
+                while ($cat = mysqli_fetch_assoc($catQuery)) {
+                  echo "<option value='{$cat['id']}'>" . htmlspecialchars($cat['name']) . "</option>";
+                }
+                ?>
+              </select>
+            </div>
+
+            <!-- NAME -->
             <div class="form-group">
               <label>Product Name</label>
               <input type="text" name="name" class="form-control" required>
             </div>
 
+            <!-- DESCRIPTION -->
             <div class="form-group">
-              <label>Price in Rupees</label>
+              <label>Description</label>
+              <textarea name="description" class="form-control"></textarea>
+            </div>
+
+            <!-- PRICE -->
+            <div class="form-group">
+              <label>Price (₹)</label>
               <input type="number" step="0.01" name="price" class="form-control" required>
             </div>
+
+            <!-- DISCOUNT -->
             <div class="form-group">
-              <label>Tag</label>
-              <input type="text" name="tag" class="form-control" required>
+              <label>Discount Price (₹)</label>
+              <input type="number" step="0.01" name="discount_price" class="form-control">
             </div>
 
+            <!-- FLAGS -->
             <div class="form-group">
-              <label>Tag Description</label>
-              <textarea name="tag_description" class="form-control" required></textarea>
+              <div class="form-check">
+                <input type="checkbox" name="is_popular" class="form-check-input" id="popular">
+                <label class="form-check-label" for="popular">Popular</label>
+              </div>
+
+              <div class="form-check">
+                <input type="checkbox" name="is_featured" class="form-check-input" id="featured">
+                <label class="form-check-label" for="featured">Featured</label>
+              </div>
+
+              <div class="form-check">
+                <input type="checkbox" name="status" class="form-check-input" id="status" checked>
+                <label class="form-check-label" for="status">Active</label>
+              </div>
             </div>
 
+            <!-- IMAGE -->
             <div class="form-group">
               <label>Product Image</label>
               <input type="file" name="image" class="form-control" required>
             </div>
+
           </div>
+
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" name="addProduct" class="btn btn-primary">Add</button>
+            <button type="submit" name="addProduct" class="btn btn-primary">Add Product</button>
           </div>
+
         </form>
+
       </div>
     </div>
   </div>
 
-  <!-- delete user -->
-  <!-- User Modal -->
-  <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+  <!-- ================= DELETE MODAL ================= -->
+  <div class="modal fade" id="DeleteModal" tabindex="-1">
+    <div class="modal-dialog">
       <div class="modal-content">
+
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Delete Product</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+          <h5 class="modal-title">Delete Product</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
           </button>
         </div>
+
         <form action="codeLogic/product/delete/delete.php" method="POST">
           <div class="modal-body">
-            <input type="hidden" name="delete_id" class="delete_user_id">
-            <p>Are you sure, you want to delete this data ?</p>
+            <input type="hidden" name="delete_id" class="delete_product_id">
+            <p>Are you sure you want to delete this product?</p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" name="deleteProduct" class="btn btn-primary">Yes, Delete !</button>
+            <button type="submit" name="deleteProduct" class="btn btn-danger">Yes, Delete</button>
           </div>
         </form>
+
       </div>
     </div>
   </div>
 
-
-  <!-- Content Header (Page header) -->
+  <!-- ================= HEADER ================= -->
   <div class="content-header">
     <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1 class="m-0 text-dark">Dashboard</h1>
-        </div><!-- /.col -->
-        <div class="col-sm-6">
-          <ol class="breadcrumb float-sm-right">
-            <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item active">Products</li>
-          </ol>
-        </div><!-- /.col -->
-      </div><!-- /.row -->
-    </div><!-- /.container-fluid -->
+      <h1 class="m-0">Products</h1>
+    </div>
   </div>
-  <!-- /.content-header -->
 
+  <!-- ================= TABLE ================= -->
   <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-      <?php
-        include('./message/message.php');
-        ?>
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Products
-            </h3>
-            <a href="" class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#AddCertificateModal">Add Product</a>
-          </div>
-          <!-- /.card-header -->
-          <div class="card-body">
-            <table id="example1" class="table table-bordered table-striped">
-              <thead>
-                <tr>
-                  <th>Sr</th>
-                  <th>Name</th>
-                  <th>Price</th>
-                  <th>Tag</th>
-                  <th>Description</th>
-                  <th>Image</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
+    <?php include('./message/message.php'); ?>
 
-              <tbody>
-                <?php
-                $query = "SELECT * FROM products ORDER BY created_at DESC";
-                $query_run = mysqli_query($conn, $query);
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Product List</h3>
+        <button class="btn btn-primary btn-sm float-right"
+                data-toggle="modal"
+                data-target="#AddProductModal">
+          Add Product
+        </button>
+      </div>
 
-                if (mysqli_num_rows($query_run) > 0) {
-                  $n = 0;
-                  foreach ($query_run as $row) {
-                    $n++;
-                ?>
-                    <tr>
-                      <td><?= $n; ?></td>
+      <div class="card-body">
+        <table id="example1" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Image</th>
+              <th>Action</th>
+            </tr>
+          </thead>
 
-                      <td><?= htmlspecialchars($row['name']); ?></td>
+          <tbody>
+            <?php
+            $query = "
+              SELECT p.*, c.name AS category_name
+              FROM products p
+              JOIN categories c ON c.id = p.category_id
+              ORDER BY p.created_at DESC
+            ";
 
-                      <td>₹<?= number_format($row['price'], 2); ?></td>
+            $run = mysqli_query($conn, $query);
+            $n = 0;
 
-                      <td><?= htmlspecialchars($row['tag']); ?></td>
+            while ($row = mysqli_fetch_assoc($run)):
+              $n++;
+            ?>
+              <tr>
+                <td><?= $n ?></td>
+                <td><?= htmlspecialchars($row['category_name']) ?></td>
+                <td><?= htmlspecialchars($row['name']) ?></td>
+                <td>₹<?= number_format($row['price'], 2) ?></td>
+                <td>
+                  <?= $row['status'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>' ?>
+                </td>
+                <td>
+                  <img src="<?= $mediaPath . $row['image'] ?>"
+                       width="70"
+                       height="55"
+                       style="object-fit:cover;">
+                </td>
+                <td>
+                  <a href="product-edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-info">Edit</a>
+                  <button class="btn btn-sm btn-danger deletebtn" value="<?= $row['id'] ?>">Delete</button>
+                </td>
+              </tr>
+            <?php endwhile; ?>
+          </tbody>
 
-                      <td>
-                        <?= htmlspecialchars(mb_strimwidth($row['tag_description'], 0, 40, '...')); ?>
-                      </td>
-
-                      <td>
-                        <img src="<?= $mediaPath . htmlspecialchars($row['image']); ?>"
-                          alt="Product Image"
-                          width="80"
-                          height="60"
-                          style="object-fit:cover;">
-                      </td>
-
-                      <td>
-                        <a href="product-edit.php?id=<?= $row['id']; ?>"
-                          class="btn btn-sm btn-info">Edit</a>
-
-                        <button type="button"
-                          value="<?= $row['id']; ?>"
-                          class="btn btn-sm btn-danger deletebtn">
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  <?php
-                  }
-                } else {
-                  ?>
-                  <tr>
-                    <td colspan="7" class="text-center">No Products Found</td>
-                  </tr>
-                <?php
-                }
-                ?>
-              </tbody>
-
-            </table>
-          </div>
-        </div>
-
+        </table>
       </div>
     </div>
   </div>
 
-
-
 </div>
-</div>
-<?php
-include('include/script.php');
-?>
+
+<?php include('include/script.php'); ?>
+
 <script>
-  $(document).ready(function() {
-    $('.deletebtn').click(function(e) {
-      e.preventDefault();
-      var user_id = $(this).val();
-      //console.log(user_id);
-      $('.delete_user_id').val(user_id);
-      $('#DeleteModal').modal('show');
-    });
+$(document).ready(function () {
+  $('.deletebtn').click(function () {
+    $('.delete_product_id').val($(this).val());
+    $('#DeleteModal').modal('show');
   });
+});
 </script>
 
-<?php
-include('include/footer.php');
-?>
+<?php include('include/footer.php'); ?>

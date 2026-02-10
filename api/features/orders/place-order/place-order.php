@@ -23,7 +23,7 @@ function placeOrder()
         return ['success' => false, 'message' => 'User ID and cart are required'];
     }
 
-    // Decode cart JSON string (because Flutter sends FormData with JSON string)
+    // Decode cart JSON string
     $cart = json_decode($cartJson, true);
     if (!is_array($cart) || empty($cart)) {
         http_response_code(400);
@@ -41,7 +41,6 @@ function placeOrder()
         http_response_code(404);
         return ['success' => false, 'message' => 'User not found'];
     }
-
 
     $name = $data['name'] ?? $user['name'];
     $phone = $data['phone'] ?? $user['phone'];
@@ -74,23 +73,31 @@ function placeOrder()
 
         // 5️⃣ Insert items & extras
         foreach ($cart as $item) {
-            $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
-            $price = isset($item['price']) ? floatval($item['price']) : 0;
-            $itemTotal = $price * $quantity;
+
+            $quantity   = intval($item['quantity'] ?? 1);
+            $price      = floatval($item['price'] ?? 0);
+            $size       = $item['size'] ?? null;
+            $sizePrice  = floatval($item['size_price'] ?? 0);
+
+            // ✅ base + size price
+            $perItemPrice = $price + $sizePrice;
+            $itemTotal = $perItemPrice * $quantity;
             $totalAmount += $itemTotal;
 
-            // Insert item
+            // Insert order item
             $stmt = $conn->prepare("
                 INSERT INTO order_items 
-                (order_id, product_id, product_name, product_price, product_image, quantity)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (order_id, product_id, product_name, product_price, size, size_price, product_image, quantity)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->bind_param(
-                'sssssi',
+                'sssssdsi',
                 $orderId,
                 $item['product_id'],
                 $item['name'],
                 $price,
+                $size,
+                $sizePrice,
                 $item['image'],
                 $quantity
             );
@@ -98,10 +105,10 @@ function placeOrder()
             $orderItemId = $stmt->insert_id;
             $stmt->close();
 
-            // Insert extras if any
+            // Insert extras
             if (!empty($item['extras'])) {
                 foreach ($item['extras'] as $extra) {
-                    $extraName = $extra['name'];
+                    $extraName  = $extra['name'];
                     $extraPrice = floatval($extra['price']);
                     $totalAmount += $extraPrice;
 
@@ -131,9 +138,14 @@ function placeOrder()
             'order_id' => $orderId,
             'total_amount' => $totalAmount
         ];
+
     } catch (Exception $e) {
         mysqli_rollback($conn);
         http_response_code(500);
-        return ['success' => false, 'message' => 'Failed to place order', 'error' => $e->getMessage()];
+        return [
+            'success' => false,
+            'message' => 'Failed to place order',
+            'error' => $e->getMessage()
+        ];
     }
 }
