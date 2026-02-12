@@ -26,7 +26,7 @@ function getProducts()
     /* =========================
        WHERE CONDITIONS
     ========================== */
-    $conditions = ['status = 1']; // only active products
+    $conditions = ['status = 1'];
     $params = [];
     $types  = '';
 
@@ -73,8 +73,8 @@ function getProducts()
             category_id,
             name,
             description,
-            price,
-            discount_price,
+            sizes,
+            discount_percentage,
             image,
             is_popular,
             is_featured,
@@ -100,20 +100,19 @@ function getProducts()
     $result = $stmt->get_result();
 
     $products = [];
+
     while ($row = $result->fetch_assoc()) {
         $products[] = [
-            'id'             => $row['id'],
-            'category_id'    => $row['category_id'],
-            'name'           => $row['name'],
-            'description'    => $row['description'],
-            'price'          => (float)$row['price'],
-            'discount_price' => $row['discount_price'] !== null
-                ? (float)$row['discount_price']
-                : null,
-            'image'          => $row['image'],
-            'is_popular'     => (bool)$row['is_popular'],
-            'is_featured'    => (bool)$row['is_featured'],
-            'created_at'     => $row['created_at'],
+            'id' => $row['id'],
+            'category_id' => $row['category_id'],
+            'name' => $row['name'],
+            'description' => $row['description'],
+            'sizes' => json_decode($row['sizes'], true), // S, M, L prices
+            'discount_percentage' => (float)$row['discount_percentage'],
+            'image' => $row['image'],
+            'is_popular' => (bool)$row['is_popular'],
+            'is_featured' => (bool)$row['is_featured'],
+            'created_at' => $row['created_at'],
         ];
     }
 
@@ -133,3 +132,4 @@ function getProducts()
         ]
     ];
 }
+

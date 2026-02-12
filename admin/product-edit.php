@@ -29,6 +29,13 @@ if ($result->num_rows === 0) {
 
 $product = $result->fetch_assoc();
 
+/* ================= DECODE SIZES ================= */
+$sizes = json_decode($product['sizes'], true) ?? [
+    'S' => '',
+    'M' => '',
+    'L' => ''
+];
+
 /* ================= FETCH CATEGORIES ================= */
 $categories = mysqli_query($conn, "SELECT id, name FROM categories WHERE status = 1");
 ?>
@@ -106,25 +113,51 @@ $categories = mysqli_query($conn, "SELECT id, name FROM categories WHERE status 
                                           rows="3"><?= htmlspecialchars($product['description']); ?></textarea>
                             </div>
 
-                            <!-- PRICE -->
+                            <!-- SIZES -->
                             <div class="form-group">
-                                <label>Price (₹)</label>
-                                <input type="number"
-                                       step="0.01"
-                                       name="price"
-                                       class="form-control"
-                                       value="<?= htmlspecialchars($product['price']); ?>"
-                                       required>
+                                <label>Prices by Size (₹)</label>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label>Small (S)</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="sizes[S]"
+                                               class="form-control"
+                                               value="<?= htmlspecialchars($sizes['S']); ?>"
+                                               required>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label>Medium (M)</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="sizes[M]"
+                                               class="form-control"
+                                               value="<?= htmlspecialchars($sizes['M']); ?>"
+                                               required>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label>Large (L)</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="sizes[L]"
+                                               class="form-control"
+                                               value="<?= htmlspecialchars($sizes['L']); ?>"
+                                               required>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- DISCOUNT PRICE -->
+                            <!-- DISCOUNT -->
                             <div class="form-group">
-                                <label>Discount Price (₹)</label>
+                                <label>Discount Percentage (%)</label>
                                 <input type="number"
                                        step="0.01"
-                                       name="discount_price"
+                                       name="discount_percentage"
                                        class="form-control"
-                                       value="<?= htmlspecialchars($product['discount_price']); ?>">
+                                       value="<?= htmlspecialchars($product['discount_percentage']); ?>">
                             </div>
 
                             <!-- FLAGS -->

@@ -235,11 +235,10 @@ function createTables($conn)
 
         name VARCHAR(150) NOT NULL,
         description TEXT,
-
-        price DECIMAL(10,2) NOT NULL,
-        discount_price DECIMAL(10,2) DEFAULT NULL,
-
         image VARCHAR(255) NOT NULL,
+
+        sizes JSON NOT NULL,
+        discount_percentage DECIMAL(5,2) DEFAULT 0,
 
         is_popular TINYINT(1) DEFAULT 0,
         is_featured TINYINT(1) DEFAULT 0,
@@ -380,11 +379,14 @@ function createTables($conn)
             order_id CHAR(36) NOT NULL,
             product_id CHAR(36) NOT NULL,
 
-            product_name VARCHAR(150) NOT NULL,
-            product_price DECIMAL(10,2) NOT NULL,
             product_image VARCHAR(255) NOT NULL,
+            product_name VARCHAR(150) NOT NULL,
             size VARCHAR(5) NOT NULL,
-            size_price DECIMAL(10,2) NOT NULL,
+
+            base_price DECIMAL(10,2) NOT NULL,
+            discount_percentage DECIMAL(5,2) NOT NULL,
+            final_price DECIMAL(10,2) NOT NULL,
+
             quantity INT DEFAULT 1,
 
             FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE

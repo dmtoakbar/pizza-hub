@@ -75,14 +75,14 @@
            </ul>
          </li>
 
-         <!-- <li class="nav-item">
+         <li class="nav-item">
            <a href="toppings.php" class="nav-link">
              <i class="nav-icon fas fa-pizza-slice"></i>
              <p>
                Extra Toppings
              </p>
            </a>
-         </li> -->
+         </li>
 
 
          <li class="nav-item">

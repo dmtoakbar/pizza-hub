@@ -39,7 +39,7 @@ include('include/sidebar.php');
             </div>
 
             <div class="form-group">
-              <label>Price (₹)</label>
+              <label>Price ($)</label>
               <input type="number" step="0.01" name="price" class="form-control" required>
             </div>
 
@@ -88,7 +88,7 @@ include('include/sidebar.php');
             </div>
 
             <div class="form-group">
-              <label>Price (₹)</label>
+              <label>Price ($)</label>
               <input type="number" step="0.01" name="price" id="edit_price" class="form-control" required>
             </div>
 
@@ -190,7 +190,7 @@ include('include/sidebar.php');
               <tr>
                 <td><?= $n ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
-                <td>₹<?= number_format($row['price'], 2) ?></td>
+                <td>$<?= number_format($row['price'], 2) ?></td>
                 <td>
                   <img src="<?= $mediaPath . $row['image'] ?>"
                     width="60"

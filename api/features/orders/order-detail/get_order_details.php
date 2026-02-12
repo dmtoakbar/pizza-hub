@@ -2,99 +2,155 @@
 require_once __DIR__ . '/../../../../config/verify-each-request.php';
 require_once __DIR__ . '/../../../../config/database.php';
 
+header('Content-Type: application/json');
+
 function getOrderDetails()
 {
     global $conn;
 
-    $orderId = $_GET['order_id'] ?? '';
-
-    if ($orderId === '') {
-        http_response_code(400);
-        return ['success' => false, 'message' => 'Order ID required'];
+    if (!isset($_GET['order_id']) || empty($_GET['order_id'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Order ID is required'
+        ]);
+        exit;
     }
 
-    // 1️⃣ Get order info including user details
-    $stmt = $conn->prepare("
-        SELECT 
-            o.id AS order_id,
-            o.username,
-            o.email,
-            o.phone,
-            o.address,
-            o.total_amount,
-            o.payment_method,
-            o.payment_status,
-            o.status
-        FROM orders o
-        WHERE o.id = ?
-        LIMIT 1
-    ");
-    $stmt->bind_param('s', $orderId);
-    $stmt->execute();
-    $orderResult = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $orderId = (int) $_GET['order_id'];
 
-    if (!$orderResult) {
-        http_response_code(404);
-        return ['success' => false, 'message' => 'Order not found'];
+    /* ===================== FETCH ORDER ===================== */
+
+    $orderStmt = $conn->prepare("
+    SELECT 
+        id,
+        username,
+        email,
+        phone,
+        address,
+        total_amount,
+        payment_method,
+        payment_status,
+        status,
+        created_at
+    FROM orders
+    WHERE id = ?
+    LIMIT 1
+");
+
+    $orderStmt->bind_param("i", $orderId);
+    $orderStmt->execute();
+    $orderResult = $orderStmt->get_result();
+
+    if ($orderResult->num_rows === 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Order not found'
+        ]);
+        exit;
     }
 
-    // 2️⃣ Get order items + extras
-    $stmt = $conn->prepare("
+    $order = $orderResult->fetch_assoc();
+    $orderStmt->close();
+
+    /* ===================== FETCH ORDER ITEMS ===================== */
+
+    $itemStmt = $conn->prepare("
+    SELECT 
+        id,
+        product_id,
+        product_name,
+        product_image,
+        size,
+        base_price,
+        discount_percentage,
+        final_price,
+        quantity
+    FROM order_items
+    WHERE order_id = ?
+");
+
+    $itemStmt->bind_param("i", $orderId);
+    $itemStmt->execute();
+    $itemResult = $itemStmt->get_result();
+
+    $itemsMap = [];
+    $orderItemIds = [];
+
+    while ($row = $itemResult->fetch_assoc()) {
+        $row['base_price'] = (float) $row['base_price'];
+        $row['discount_percentage'] = (float) $row['discount_percentage'];
+        $row['final_price'] = (float) $row['final_price'];
+        $row['quantity'] = (int) $row['quantity'];
+        $row['extras'] = [];
+
+        $itemsMap[$row['id']] = $row;
+        $orderItemIds[] = $row['id'];
+    }
+
+    $itemStmt->close();
+
+    /* ===================== FETCH EXTRAS (BULK) ===================== */
+
+    if (!empty($orderItemIds)) {
+        $placeholders = implode(',', array_fill(0, count($orderItemIds), '?'));
+        $types = str_repeat('i', count($orderItemIds));
+
+        $extraStmt = $conn->prepare("
         SELECT 
-            oi.id AS item_id,
-            oi.product_id,
-            oi.product_name,
-            oi.quantity,
-            oi.product_price,
-            oi.product_image,
-            e.extra_name,
-            e.extra_price
-        FROM order_items oi
-        LEFT JOIN order_item_extras e ON oi.id = e.order_item_id
-        WHERE oi.order_id = ?
+            order_item_id,
+            extra_name,
+            extra_price
+        FROM order_item_extras
+        WHERE order_item_id IN ($placeholders)
     ");
-    $stmt->bind_param('s', $orderId);
-    $stmt->execute();
-    $result = $stmt->get_result();
 
-    $items = [];
-    while ($row = $result->fetch_assoc()) {
-        $itemId = $row['item_id'];
+        $extraStmt->bind_param($types, ...$orderItemIds);
+        $extraStmt->execute();
+        $extraResult = $extraStmt->get_result();
 
-        if (!isset($items[$itemId])) {
-            $items[$itemId] = [
-                'product_id' => $row['product_id'],
-                'product_name' => $row['product_name'],
-                'quantity' => $row['quantity'],
-                'price' => $row['product_price'],
-                'image' => $row['product_image'],
-                'extras' => []
+        while ($extra = $extraResult->fetch_assoc()) {
+            $itemsMap[$extra['order_item_id']]['extras'][] = [
+                'extra_name'  => $extra['extra_name'],
+                'extra_price' => (float) $extra['extra_price'],
             ];
         }
 
-        if ($row['extra_name']) {
-            $items[$itemId]['extras'][] = [
-                'name' => $row['extra_name'],
-                'price' => $row['extra_price']
-            ];
-        }
+        $extraStmt->close();
     }
-    $stmt->close();
 
-    return [
+    /* ===================== FINAL RESPONSE ===================== */
+
+    $response = [
         'success' => true,
-        'order' => [
-            'id' => $orderResult['order_id'],
-            'username' => $orderResult['username'],
-            'email' => $orderResult['email'],
-            'phone' => $orderResult['phone'],
-            'address' => $orderResult['address'],
-            'total_amount' => $orderResult['total_amount'],
-            'payment_method' => $orderResult['payment_method'],
-            'payment_status' => $orderResult['payment_status'],
-            'status' => $orderResult['status'],
-        ],
-        'items' => array_values($items)
+        'data' => [
+            'order' => [
+                'id'             => (int) $order['id'],
+                'username'       => $order['username'],
+                'email'          => $order['email'],
+                'phone'          => $order['phone'],
+                'address'        => $order['address'],
+                'total_amount'   => (float) $order['total_amount'],
+                'payment_method' => $order['payment_method'],
+                'payment_status' => $order['payment_status'],
+                'status'         => $order['status'],
+                'created_at'     => $order['created_at'],
+            ],
+            'items' => array_values(array_map(function ($item) {
+                return [
+                    'product_id'          => $item['product_id'],
+                    'product_name'        => $item['product_name'],
+                    'product_image'       => $item['product_image'],
+                    'size'                => $item['size'],
+                    'base_price'          => $item['base_price'],
+                    'discount_percentage' => $item['discount_percentage'],
+                    'final_price'         => $item['final_price'],
+                    'quantity'            => $item['quantity'],
+                    'extras'              => $item['extras'],
+                ];
+            }, $itemsMap)),
+        ]
     ];
+
+
+    return $response;
 }

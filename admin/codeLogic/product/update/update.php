@@ -12,13 +12,14 @@ if (isset($_POST['updateProduct'])) {
     /* =========================
        INPUT
     ========================== */
-    $id             = $_POST['id'];
-    $category_id    = trim($_POST['category_id']);
-    $name           = trim($_POST['name']);
-    $description    = trim($_POST['description']);
-    $price          = trim($_POST['price']);
-    $discount_price = trim($_POST['discount_price']);
-    $oldImage       = $_POST['old_image'];
+    $id          = $_POST['id'];
+    $category_id = trim($_POST['category_id']);
+    $name        = trim($_POST['name']);
+    $description = trim($_POST['description']);
+    $oldImage    = $_POST['old_image'];
+
+    $sizes              = $_POST['sizes'] ?? [];
+    $discountPercentage = $_POST['discount_percentage'] ?? 0;
 
     $is_popular  = isset($_POST['is_popular']) ? 1 : 0;
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
@@ -27,28 +28,37 @@ if (isset($_POST['updateProduct'])) {
     /* =========================
        VALIDATION
     ========================== */
-    if ($id === '' || $category_id === '' || $name === '' || $price === '') {
+    if ($id === '' || $category_id === '' || $name === '') {
         $_SESSION['status'] = "Required fields are missing";
         header("Location: ../../../product-edit.php?id=$id");
         exit;
     }
 
-    if (!is_numeric($price)) {
-        $_SESSION['status'] = "Invalid price value";
+    // Validate sizes
+    foreach (['S', 'M', 'L'] as $size) {
+        if (!isset($sizes[$size]) || $sizes[$size] === '' || !is_numeric($sizes[$size])) {
+            $_SESSION['status'] = "Invalid price for size $size";
+            header("Location: ../../../product-edit.php?id=$id");
+            exit;
+        }
+    }
+
+    if (!is_numeric($discountPercentage) || $discountPercentage < 0 || $discountPercentage > 100) {
+        $_SESSION['status'] = "Invalid discount percentage";
         header("Location: ../../../product-edit.php?id=$id");
         exit;
     }
 
-    if ($discount_price !== '' && !is_numeric($discount_price)) {
-        $_SESSION['status'] = "Invalid discount price";
-        header("Location: ../../../product-edit.php?id=$id");
-        exit;
-    }
+    $sizesJson = json_encode([
+        'S' => (float)$sizes['S'],
+        'M' => (float)$sizes['M'],
+        'L' => (float)$sizes['L'],
+    ]);
 
     /* =========================
        IMAGE HANDLING
     ========================== */
-    $imagePath = $oldImage; // keep old image by default
+    $imagePath = $oldImage;
 
     if (!empty($_FILES['image']['name'])) {
 
@@ -70,7 +80,7 @@ if (isset($_POST['updateProduct'])) {
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $newImage)) {
 
-            // 🗑 delete old image
+            // delete old image
             if (!empty($oldImage)) {
                 $oldFile = __DIR__ . '/../../../../storage/' . ltrim($oldImage, '/');
                 if (file_exists($oldFile)) {
@@ -87,27 +97,27 @@ if (isset($_POST['updateProduct'])) {
     ========================== */
     $query = "
         UPDATE products SET
-            category_id    = ?,
-            name           = ?,
-            description    = ?,
-            price          = ?,
-            discount_price = ?,
-            image          = ?,
-            is_popular     = ?,
-            is_featured    = ?,
-            status         = ?
+            category_id = ?,
+            name = ?,
+            description = ?,
+            image = ?,
+            sizes = ?,
+            discount_percentage = ?,
+            is_popular = ?,
+            is_featured = ?,
+            status = ?
         WHERE id = ?
     ";
 
     $stmt = $conn->prepare($query);
     $stmt->bind_param(
-        "sssddsiiis",
+        "sssssdiiis",
         $category_id,
         $name,
         $description,
-        $price,
-        $discount_price,
         $imagePath,
+        $sizesJson,
+        $discountPercentage,
         $is_popular,
         $is_featured,
         $status,

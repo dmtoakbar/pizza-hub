@@ -15,33 +15,38 @@ if (isset($_POST['addProduct'])) {
     /* =========================
        INPUT SANITIZATION
     ========================== */
-    $category_id     = trim($_POST['category_id']);
-    $name            = trim($_POST['name']);
-    $description     = trim($_POST['description']);
-    $price           = trim($_POST['price']);
-    $discount_price  = trim($_POST['discount_price']);
+    $category_id = trim($_POST['category_id'] ?? '');
+    $name        = trim($_POST['name'] ?? '');
+    $description = trim($_POST['description'] ?? '');
 
-    $is_popular   = isset($_POST['is_popular']) ? 1 : 0;
-    $is_featured  = isset($_POST['is_featured']) ? 1 : 0;
-    $status       = isset($_POST['status']) ? 1 : 0;
+    $sizes       = $_POST['sizes'] ?? [];
+    $discount    = $_POST['discount_percentage'] ?? 0;
+
+    $is_popular  = isset($_POST['is_popular']) ? 1 : 0;
+    $is_featured = isset($_POST['is_featured']) ? 1 : 0;
+    $status      = isset($_POST['status']) ? 1 : 0;
 
     /* =========================
        VALIDATION
     ========================== */
-    if ($category_id === '' || $name === '' || $price === '') {
-        $_SESSION['status'] = "Category, name and price are required!";
+    if ($category_id === '' || $name === '') {
+        $_SESSION['status'] = "Category and product name are required!";
         header("Location: ../../../products.php");
         exit;
     }
 
-    if (!is_numeric($price)) {
-        $_SESSION['status'] = "Invalid price value!";
-        header("Location: ../../../products.php");
-        exit;
+    // Validate sizes (S, M, L required)
+    $requiredSizes = ['S', 'M', 'L'];
+    foreach ($requiredSizes as $size) {
+        if (!isset($sizes[$size]) || !is_numeric($sizes[$size]) || $sizes[$size] <= 0) {
+            $_SESSION['status'] = "Valid price required for size {$size}!";
+            header("Location: ../../../products.php");
+            exit;
+        }
     }
 
-    if ($discount_price !== '' && !is_numeric($discount_price)) {
-        $_SESSION['status'] = "Invalid discount price!";
+    if (!is_numeric($discount) || $discount < 0 || $discount > 100) {
+        $_SESSION['status'] = "Discount must be between 0 and 100!";
         header("Location: ../../../products.php");
         exit;
     }
@@ -78,20 +83,30 @@ if (isset($_POST['addProduct'])) {
     }
 
     /* =========================
-       INSERT PRODUCT
+       PREPARE DATA
     ========================== */
     $productId   = Uuid::uuid4()->toString();
     $imageDbPath = 'products/' . $imageName;
 
+    // Encode sizes to JSON
+    $sizesJson = json_encode([
+        'S' => (float)$sizes['S'],
+        'M' => (float)$sizes['M'],
+        'L' => (float)$sizes['L'],
+    ], JSON_UNESCAPED_UNICODE);
+
+    /* =========================
+       INSERT PRODUCT
+    ========================== */
     $stmt = $conn->prepare("
         INSERT INTO products (
             id,
             category_id,
             name,
             description,
-            price,
-            discount_price,
             image,
+            sizes,
+            discount_percentage,
             is_popular,
             is_featured,
             status
@@ -99,14 +114,14 @@ if (isset($_POST['addProduct'])) {
     ");
 
     $stmt->bind_param(
-        "ssssddsiii",
+        "ssssssdiis",
         $productId,
         $category_id,
         $name,
         $description,
-        $price,
-        $discount_price,
         $imageDbPath,
+        $sizesJson,
+        $discount,
         $is_popular,
         $is_featured,
         $status
@@ -119,7 +134,6 @@ if (isset($_POST['addProduct'])) {
     }
 
     $stmt->close();
-
     header("Location: ../../../products.php");
     exit;
 }

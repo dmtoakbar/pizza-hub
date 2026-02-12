@@ -58,16 +58,35 @@ include('include/sidebar.php');
               <textarea name="description" class="form-control"></textarea>
             </div>
 
-            <!-- PRICE -->
+            <!-- SIZES -->
             <div class="form-group">
-              <label>Price (₹)</label>
-              <input type="number" step="0.01" name="price" class="form-control" required>
+              <label>Sizes & Prices ($)</label>
+              <div class="row">
+                <div class="col-md-4">
+                  <label>Small (S)</label>
+                  <input type="number" step="0.01" name="sizes[S]" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                  <label>Medium (M)</label>
+                  <input type="number" step="0.01" name="sizes[M]" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                  <label>Large (L)</label>
+                  <input type="number" step="0.01" name="sizes[L]" class="form-control" required>
+                </div>
+              </div>
             </div>
 
             <!-- DISCOUNT -->
             <div class="form-group">
-              <label>Discount Price (₹)</label>
-              <input type="number" step="0.01" name="discount_price" class="form-control">
+              <label>Discount (%)</label>
+              <input type="number"
+                     step="0.01"
+                     min="0"
+                     max="100"
+                     name="discount_percentage"
+                     class="form-control"
+                     value="0" required>
             </div>
 
             <!-- FLAGS -->
@@ -162,7 +181,8 @@ include('include/sidebar.php');
               <th>Sr</th>
               <th>Category</th>
               <th>Name</th>
-              <th>Price</th>
+              <th>Sizes</th>
+              <th>Discount</th>
               <th>Status</th>
               <th>Image</th>
               <th>Action</th>
@@ -183,14 +203,22 @@ include('include/sidebar.php');
 
             while ($row = mysqli_fetch_assoc($run)):
               $n++;
+              $sizes = json_decode($row['sizes'], true);
             ?>
               <tr>
                 <td><?= $n ?></td>
                 <td><?= htmlspecialchars($row['category_name']) ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
-                <td>₹<?= number_format($row['price'], 2) ?></td>
                 <td>
-                  <?= $row['status'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>' ?>
+                  <?php foreach ($sizes as $size => $price): ?>
+                    <strong><?= $size ?>:</strong> $<?= number_format($price, 2) ?><br>
+                  <?php endforeach; ?>
+                </td>
+                <td><?= $row['discount_percentage'] ?>%</td>
+                <td>
+                  <?= $row['status']
+                    ? '<span class="badge badge-success">Active</span>'
+                    : '<span class="badge badge-danger">Inactive</span>' ?>
                 </td>
                 <td>
                   <img src="<?= $mediaPath . $row['image'] ?>"

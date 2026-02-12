@@ -5,33 +5,39 @@ require_once __DIR__ . '/../../../../config/database.php';
 
 use Ramsey\Uuid\Uuid;
 
+header('Content-Type: application/json');
+
 function placeOrder()
 {
     global $conn;
 
-    // Get incoming data
+    /* =========================
+       INPUT
+    ========================== */
     $data = json_decode(file_get_contents('php://input'), true);
     if (!$data) $data = $_POST;
 
-    // 1️⃣ Validate user & cart
-    $userId = isset($data['user_id']) ? trim($data['user_id']) : '';
-    $cartJson = isset($data['cart']) ? $data['cart'] : '[]';
-    $paymentMethod = isset($data['payment_method']) ? $data['payment_method'] : 'cod';
+    $userId        = trim($data['user_id'] ?? '');
+    $cart          = $data['cart'] ?? [];
+    $paymentMethod = $data['payment_method'] ?? 'cod';
 
-    if ($userId === '' || empty($cartJson)) {
+    if (is_string($cart)) {
+        $cart = json_decode($cart, true);
+    }
+
+    if ($userId === '' || empty($cart)) {
         http_response_code(400);
         return ['success' => false, 'message' => 'User ID and cart are required'];
     }
 
-    // Decode cart JSON string
-    $cart = json_decode($cartJson, true);
-    if (!is_array($cart) || empty($cart)) {
-        http_response_code(400);
-        return ['success' => false, 'message' => 'Cart is empty or invalid'];
-    }
 
-    // 2️⃣ Fetch user info
-    $stmt = $conn->prepare("SELECT name, email, phone, address FROM users WHERE id = ? LIMIT 1");
+    /* =========================
+       USER
+    ========================== */
+    $stmt = $conn->prepare("
+        SELECT name, email, phone, address
+        FROM users WHERE id = ? LIMIT 1
+    ");
     $stmt->bind_param('s', $userId);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
@@ -42,20 +48,25 @@ function placeOrder()
         return ['success' => false, 'message' => 'User not found'];
     }
 
-    $name = $data['name'] ?? $user['name'];
-    $phone = $data['phone'] ?? $user['phone'];
+    $name    = $data['name'] ?? $user['name'];
+    $phone   = $data['phone'] ?? $user['phone'];
     $address = $data['address'] ?? $user['address'];
 
-    // 3️⃣ Begin transaction
+    /* =========================
+       TRANSACTION
+    ========================== */
+
     mysqli_begin_transaction($conn);
 
     try {
-        $orderId = Uuid::uuid4()->toString();
+        $orderId     = Uuid::uuid4()->toString();
         $totalAmount = 0;
 
-        // 4️⃣ Insert order
+        /* =========================
+           CREATE ORDER
+        ========================== */
         $stmt = $conn->prepare("
-            INSERT INTO orders 
+            INSERT INTO orders
             (id, username, email, phone, address, total_amount, payment_method)
             VALUES (?, ?, ?, ?, ?, 0, ?)
         ");
@@ -71,45 +82,68 @@ function placeOrder()
         $stmt->execute();
         $stmt->close();
 
-        // 5️⃣ Insert items & extras
+
+        /* =========================
+           ITEMS
+        ========================== */
         foreach ($cart as $item) {
 
-            $quantity   = intval($item['quantity'] ?? 1);
-            $price      = floatval($item['price'] ?? 0);
-            $size       = $item['size'] ?? null;
-            $sizePrice  = floatval($item['size_price'] ?? 0);
+            $productId   = $item['product_id'];
+            $productName = $item['name'];
+            $productImg  = $item['image'];
 
-            // ✅ base + size price
-            $perItemPrice = $price + $sizePrice;
-            $itemTotal = $perItemPrice * $quantity;
-            $totalAmount += $itemTotal;
+            $size        = strtoupper($item['size']);
+            $quantity    = (int)$item['quantity'];
 
-            // Insert order item
+            $basePrice   = (float)$item['base_price'];
+            $discountPct = (float)($item['discount_percentage'] ?? 0);
+            $finalPrice  = (float)$item['final_price'];
+
+            // item subtotal (WITHOUT extras)
+            $itemSubtotal = $finalPrice * $quantity;
+            $totalAmount += $itemSubtotal;
+
+            /* =========================
+               INSERT ORDER ITEM (SNAPSHOT)
+            ========================== */
             $stmt = $conn->prepare("
-                INSERT INTO order_items 
-                (order_id, product_id, product_name, product_price, size, size_price, product_image, quantity)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO order_items (
+                    order_id,
+                    product_id,
+                    product_image,
+                    product_name,
+                    size,
+                    base_price,
+                    discount_percentage,
+                    final_price,
+                    quantity
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->bind_param(
-                'sssssdsi',
+                'sssssdddi',
                 $orderId,
-                $item['product_id'],
-                $item['name'],
-                $price,
+                $productId,
+                $productImg,
+                $productName,
                 $size,
-                $sizePrice,
-                $item['image'],
+                $basePrice,
+                $discountPct,
+                $finalPrice,
                 $quantity
             );
             $stmt->execute();
             $orderItemId = $stmt->insert_id;
             $stmt->close();
 
-            // Insert extras
+            /* =========================
+               EXTRAS
+            ========================== */
             if (!empty($item['extras'])) {
                 foreach ($item['extras'] as $extra) {
+
                     $extraName  = $extra['name'];
-                    $extraPrice = floatval($extra['price']);
+                    $extraPrice = (float)$extra['price'];
+
                     $totalAmount += $extraPrice;
 
                     $stmt = $conn->prepare("
@@ -124,8 +158,13 @@ function placeOrder()
             }
         }
 
-        // 6️⃣ Update order total
-        $stmt = $conn->prepare("UPDATE orders SET total_amount = ? WHERE id = ?");
+        /* =========================
+           UPDATE TOTAL
+        ========================== */
+        $stmt = $conn->prepare("
+            UPDATE orders SET total_amount = ?
+            WHERE id = ?
+        ");
         $stmt->bind_param('ds', $totalAmount, $orderId);
         $stmt->execute();
         $stmt->close();
@@ -136,15 +175,14 @@ function placeOrder()
             'success' => true,
             'message' => 'Order placed successfully',
             'order_id' => $orderId,
-            'total_amount' => $totalAmount
+            'total_amount' => round($totalAmount, 2)
         ];
-
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         mysqli_rollback($conn);
         http_response_code(500);
         return [
             'success' => false,
-            'message' => 'Failed to place order',
+            'message' => 'Order failed',
             'error' => $e->getMessage()
         ];
     }
