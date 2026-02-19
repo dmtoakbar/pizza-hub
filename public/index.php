@@ -51,6 +51,20 @@ if (str_contains($uri, $apiBasePath)) {
     exit;
 }
 
+// MIGRATION ROUTE default databse import (no auth, for now)
+if (str_contains($uri, 'migrate')) {
+
+    require_once __DIR__ . '/../config/index.php';
+    require_once __DIR__ . '/../api/schema/migration.php';
+
+    $result = importFullDatabase($conn);
+
+    header('Content-Type: application/json');
+    echo json_encode($result);
+    exit;
+}
+
+
 require_once __DIR__ . '/../config/handle-api-request.php';
 // ❌ Fallback
 send_json(['error' => 'Invalid route'], 404);

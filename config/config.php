@@ -14,6 +14,6 @@ define('SMTP_SECURE', 'tls');
 
 // Default sender info
 define('MAIL_FROM', 'dmtoakbar@gmail.com');
-define('MAIL_FROM_NAME', 'StudyLearn');
+define('MAIL_FROM_NAME', 'Pizza Hub');
 
 ?>

@@ -144,7 +144,7 @@ function placeOrder()
                     $extraName  = $extra['name'];
                     $extraPrice = (float)$extra['price'];
 
-                    $totalAmount += $extraPrice;
+                    $totalAmount += $extraPrice * $quantity;
 
                     $stmt = $conn->prepare("
                         INSERT INTO order_item_extras

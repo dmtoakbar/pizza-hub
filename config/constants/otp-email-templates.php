@@ -67,7 +67,7 @@ define('OTP_EMAIL_TEMPLATE', '
 <body>
     <div class="container">
         <div class="header">
-            <h1>StudyLearn</h1>
+            <h1>Pizza Hub</h1>
         </div>
         <div class="content">
             <p>Hello,</p>
@@ -77,7 +77,7 @@ define('OTP_EMAIL_TEMPLATE', '
             <p class="note">If you didn’t request this code, please ignore this email.</p>
         </div>
         <div class="footer">
-            &copy; ' . date('Y') . ' StudyLearn. All rights reserved.
+            &copy; ' . date('Y') . ' Pizza Hub. All rights reserved.
         </div>
     </div>
 </body>
