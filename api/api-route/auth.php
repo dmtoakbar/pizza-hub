@@ -33,6 +33,11 @@ switch ($uri) {
         send_json(updateUser());
         break;
 
+    case 'auth/delete-user':
+        require_once __DIR__ . '/../features/auth/delete/delete_user.php';
+        send_json(deleteUser());
+        break;
+
     default:
         send_json(['error' => 'Invalid route'], 404);
 }

@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 include('include/header.php');
 include('codeLogic/auth/login/login-logic.php');
@@ -101,3 +102,9 @@ include('include/script.php');
 </body>
 
 </html>
+
+<?php
+
+ob_end_flush();
+
+?>
