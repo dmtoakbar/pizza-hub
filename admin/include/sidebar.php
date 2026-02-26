@@ -86,6 +86,15 @@
 
 
          <li class="nav-item">
+           <a href="notifications.php" class="nav-link">
+             <i class="nav-icon fas fa-bell"></i>
+             <p>
+               Notifications
+             </p>
+           </a>
+         </li>
+
+         <li class="nav-item">
            <a href="report-issue.php" class="nav-link">
              <i class="nav-icon fas fa-exclamation-triangle"></i>
              <p>

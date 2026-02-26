@@ -92,6 +92,27 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             require_once __DIR__ . '/../features/policyPage/policy-page.php';
             send_json(getStaticPages());
             break;
+
+        case 'register-device-for-notification':
+            require_once __DIR__ . '/../features/notifications/register-device.php';
+            send_json(registerDevice());
+            break;
+
+        case 'get-unread-count':
+            require_once __DIR__ . '/../features/notifications/get-unread-count.php';
+            send_json(getUnreadCount());
+            break;
+
+        case 'get-notifications':
+            require_once __DIR__ . '/../features/notifications/get-list.php';
+            send_json(getNotifications());
+            break;
+
+        case 'mark-notification-read':
+            require_once __DIR__ . '/../features/notifications/mark-read.php';
+            send_json(markNotificationRead());
+            break;
+
         default:
             send_json(['error' => 'Invalid route'], 404);
     }

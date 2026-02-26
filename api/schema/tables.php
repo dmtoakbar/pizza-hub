@@ -175,7 +175,7 @@ function createTables($conn)
         throw new Exception('Report table error: ' . $conn->error);
     }
     // home banner=============
-    
+
     $homeBannerTable = "
     CREATE TABLE IF NOT EXISTS home_banners (
     id CHAR(36) PRIMARY KEY,
@@ -218,7 +218,7 @@ function createTables($conn)
         ";
 
     if (!$conn->query($categoryTable)) {
-    throw new Exception('categories table error: ' . $conn->error);
+        throw new Exception('categories table error: ' . $conn->error);
     }
 
 
@@ -414,5 +414,62 @@ function createTables($conn)
 
     if (!$conn->query($order_item_extras)) {
         throw new Exception("order_item_extras table error: " . $conn->error);
+    }
+
+
+    // notification system
+    $fcmTokenTable = "
+    CREATE TABLE IF NOT EXISTS user_fcm_tokens (
+        id CHAR(36) NOT NULL PRIMARY KEY,
+
+        user_id CHAR(36) NULL,  -- NULL = guest device
+
+        fcm_token VARCHAR(255) NOT NULL,
+        device_type ENUM('android','ios','web') NOT NULL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+            ON UPDATE CURRENT_TIMESTAMP,
+
+        UNIQUE KEY unique_token (fcm_token),
+
+        INDEX idx_user (user_id),
+
+        FOREIGN KEY (user_id) REFERENCES users(id) 
+            ON DELETE CASCADE
+    ) ENGINE=InnoDB;
+    ";
+
+    if (!$conn->query($fcmTokenTable)) {
+        throw new Exception("FCM Token table error: " . $conn->error);
+    }
+
+
+    $notificationTable = "
+    CREATE TABLE IF NOT EXISTS notifications (
+        id CHAR(36) NOT NULL PRIMARY KEY,
+
+        user_id CHAR(36) NULL, -- NULL = broadcast notification
+
+        title VARCHAR(150) NOT NULL,
+        message TEXT NOT NULL,
+
+        type VARCHAR(50) DEFAULT 'general',
+        reference_id CHAR(36) DEFAULT NULL,
+
+        is_read TINYINT(1) DEFAULT 0,
+        read_at DATETIME NULL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        INDEX idx_user_read (user_id, is_read),
+
+        FOREIGN KEY (user_id) REFERENCES users(id) 
+            ON DELETE CASCADE
+    ) ENGINE=InnoDB;
+    ";
+
+    if (!$conn->query($notificationTable)) {
+        throw new Exception("Notification table error: " . $conn->error);
     }
 }
