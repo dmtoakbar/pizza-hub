@@ -16,7 +16,7 @@ function getOrderDetails()
         exit;
     }
 
-    $orderId = (int) $_GET['order_id'];
+    $orderId = $_GET['order_id'];
 
     /* ===================== FETCH ORDER ===================== */
 
@@ -37,7 +37,7 @@ function getOrderDetails()
     LIMIT 1
 ");
 
-    $orderStmt->bind_param("i", $orderId);
+    $orderStmt->bind_param("s", $orderId);
     $orderStmt->execute();
     $orderResult = $orderStmt->get_result();
 
@@ -69,7 +69,7 @@ function getOrderDetails()
     WHERE order_id = ?
 ");
 
-    $itemStmt->bind_param("i", $orderId);
+    $itemStmt->bind_param("s", $orderId);
     $itemStmt->execute();
     $itemResult = $itemStmt->get_result();
 
@@ -124,7 +124,7 @@ function getOrderDetails()
         'success' => true,
         'data' => [
             'order' => [
-                'id'             => (int) $order['id'],
+                'id'             => $order['id'],
                 'username'       => $order['username'],
                 'email'          => $order['email'],
                 'phone'          => $order['phone'],
