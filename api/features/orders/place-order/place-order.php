@@ -141,17 +141,18 @@ function placeOrder()
             if (!empty($item['extras'])) {
                 foreach ($item['extras'] as $extra) {
 
-                    $extraName  = $extra['name'];
-                    $extraPrice = (float)$extra['price'];
+                    $extraName      = $extra['name'];
+                    $extraPrice     = (float)$extra['price'];
+                    $extraQuantity  = (int)($extra['quantity'] ?? 1);
 
-                    $totalAmount += $extraPrice * $quantity;
+                    $totalAmount += $extraPrice * $quantity * $extraQuantity;
 
-                    $stmt = $conn->prepare("
+                   $stmt = $conn->prepare("
                         INSERT INTO order_item_extras
-                        (order_item_id, extra_name, extra_price)
-                        VALUES (?, ?, ?)
+                        (order_item_id, extra_name, extra_price, quantity)
+                        VALUES (?, ?, ?, ?)
                     ");
-                    $stmt->bind_param('isd', $orderItemId, $extraName, $extraPrice);
+                    $stmt->bind_param('isdi', $orderItemId, $extraName, $extraPrice, $extraQuantity);
                     $stmt->execute();
                     $stmt->close();
                 }

@@ -408,6 +408,8 @@ function createTables($conn)
             extra_name VARCHAR(100) NOT NULL,
             extra_price DECIMAL(10,2) NOT NULL,
 
+            quantity INT DEFAULT 1,
+
             FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE
         ) ENGINE=InnoDB;
         ";

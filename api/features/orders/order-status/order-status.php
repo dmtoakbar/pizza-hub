@@ -68,15 +68,26 @@ function getOrderStatus()
         /* =========================
            EXTRAS
         ========================== */
-        $stmt = $conn->prepare("
-            SELECT extra_name, extra_price
-            FROM order_item_extras
-            WHERE order_item_id = ?
+       $stmt = $conn->prepare("
+        SELECT extra_name, extra_price, quantity
+        FROM order_item_extras
+        WHERE order_item_id = ?
         ");
         $stmt->bind_param('i', $row['id']);
         $stmt->execute();
-        $extras = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $extrasRaw = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $extras = array_map(function ($extra) {
+            return [
+                'name'     => $extra['extra_name'],
+                'price'    => (float)$extra['extra_price'],
+                'quantity' => (int)$extra['quantity'],
+            ];
+        }, $extrasRaw);
         $stmt->close();
+
+        $extraTotal = array_reduce($extras, function ($sum, $e) {
+            return $sum + ($e['price'] * $e['quantity']);
+        }, 0);
 
         $items[] = [
             'product_id'           => $row['product_id'],
@@ -87,7 +98,12 @@ function getOrderStatus()
             'discount_percentage'  => (float)$row['discount_percentage'],
             'final_price'          => (float)$row['final_price'],
             'quantity'             => (int)$row['quantity'],
-            'extras'               => $extras
+            'extras'               => $extras,
+            'extra_total' => (float)$extraTotal,
+            'item_total' => (float)(
+                ($row['final_price'] * $row['quantity']) +
+                ($extraTotal * $row['quantity'])
+            )
         ];
     }
 

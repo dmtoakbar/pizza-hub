@@ -96,10 +96,11 @@ function getOrderDetails()
         $types = str_repeat('i', count($orderItemIds));
 
         $extraStmt = $conn->prepare("
-        SELECT 
+            SELECT 
             order_item_id,
             extra_name,
-            extra_price
+            extra_price,
+            quantity
         FROM order_item_extras
         WHERE order_item_id IN ($placeholders)
     ");
@@ -110,8 +111,9 @@ function getOrderDetails()
 
         while ($extra = $extraResult->fetch_assoc()) {
             $itemsMap[$extra['order_item_id']]['extras'][] = [
-                'extra_name'  => $extra['extra_name'],
-                'extra_price' => (float) $extra['extra_price'],
+                'name'     => $extra['extra_name'],
+                'price'    => (float) $extra['extra_price'],
+                'quantity' => (int) $extra['quantity'],
             ];
         }
 
@@ -136,6 +138,11 @@ function getOrderDetails()
                 'created_at'     => $order['created_at'],
             ],
             'items' => array_values(array_map(function ($item) {
+
+                  $extraTotal = array_reduce($item['extras'], function ($sum, $e) {
+                    return $sum + ($e['price'] * $e['quantity']);
+                }, 0);
+
                 return [
                     'product_id'          => $item['product_id'],
                     'product_name'        => $item['product_name'],
@@ -146,6 +153,13 @@ function getOrderDetails()
                     'final_price'         => $item['final_price'],
                     'quantity'            => $item['quantity'],
                     'extras'              => $item['extras'],
+
+                    'extra_total' => (float)$extraTotal,
+                    'item_total' => (float)(
+                        ($item['final_price'] * $item['quantity']) +
+                        ($extraTotal * $item['quantity'])
+                    )
+                
                 ];
             }, $itemsMap)),
         ]

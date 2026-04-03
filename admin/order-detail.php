@@ -202,11 +202,11 @@ if ($extras->num_rows === 0) {
     echo '<span class="text-muted">—</span>';
 }
 while ($ex = $extras->fetch_assoc()):
-    $extraTotal += (float)$ex['extra_price'];
+   $extraTotal += (float)$ex['extra_price'] * (int)$ex['quantity'];
 ?>
 <span class="badge badge-light border mr-1">
-    <?= $ex['extra_name']; ?>
-    (+$<?= number_format($ex['extra_price'], 2); ?>)
+   <?= $ex['extra_name']; ?> x <?= $ex['quantity']; ?> Topping
+( $<?= number_format($ex['extra_price'], 2); ?> each )
 </span>
 <?php endwhile; ?>
 </td>
@@ -219,7 +219,9 @@ while ($ex = $extras->fetch_assoc()):
 
 <td>
 <?php
-$subTotal = ($finalPrice * $quantity) + $extraTotal;
+$subTotal = 
+    ($finalPrice * $quantity) +
+    ($extraTotal * $quantity);
 $grandTotal += $subTotal;
 ?>
 <strong>$<?= number_format($subTotal, 2); ?></strong>
