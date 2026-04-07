@@ -474,4 +474,34 @@ function createTables($conn)
     if (!$conn->query($notificationTable)) {
         throw new Exception("Notification table error: " . $conn->error);
     }
+
+
+    // rating system
+
+    $productReviewsTable = "
+        CREATE TABLE IF NOT EXISTS product_reviews (
+            id CHAR(36) NOT NULL PRIMARY KEY,
+
+            product_id CHAR(36) NOT NULL,
+            user_id CHAR(36) NOT NULL,
+
+            rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+            review TEXT NULL,
+
+            approval_status ENUM('pending','approved','rejected') 
+                DEFAULT 'pending',
+
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (product_id) REFERENCES products(id)
+                ON DELETE CASCADE,
+
+            FOREIGN KEY (user_id) REFERENCES users(id)
+                ON DELETE CASCADE
+        ) ENGINE=InnoDB;
+        ";
+
+         if (!$conn->query($productReviewsTable)) {
+        throw new Exception("Rating table error: " . $conn->error);
+    }
 }

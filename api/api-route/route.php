@@ -38,17 +38,17 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             send_json(getProducts());
             break;
 
-         case 'home-banners':
+        case 'home-banners':
             require_once __DIR__ . '/../features/homeBanner/home-banner.php';
             send_json(getHomeBanners());
             break;
 
-         case 'product-category-list':
+        case 'product-category-list':
             require_once __DIR__ . '/../features/produtCategory/get-product-category-list.php';
             send_json(getCategories());
             break;
 
-         case 'search':
+        case 'search':
             require_once __DIR__ . '/../features/search/search.php';
             send_json(advancedProductSearch());
             break;
@@ -87,7 +87,7 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             require_once __DIR__ . '/../features/orders/order-status/order-status.php';
             send_json(getOrderStatus());
             break;
-            
+
         case 'policy-pages':
             require_once __DIR__ . '/../features/policyPage/policy-page.php';
             send_json(getStaticPages());
@@ -111,6 +111,21 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
         case 'mark-notification-read':
             require_once __DIR__ . '/../features/notifications/mark-read.php';
             send_json(markNotificationRead());
+            break;
+
+        case 'add-product-review':
+            require_once __DIR__ . '/../features/productReviews/add-product-review.php';
+            send_json(addProductReview());
+            break;
+
+        case 'get-product-review':
+            require_once __DIR__ . '/../features/productReviews/get-product-reviews.php';
+            send_json(getProductReviews());
+            break;
+
+        case 'get-product-rating-summary':
+            require_once __DIR__ . '/../features/productReviews/get-product-rating-summary.php';
+            send_json(getProductRatingSummary());
             break;
 
         default:

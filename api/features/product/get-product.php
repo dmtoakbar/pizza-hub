@@ -68,22 +68,34 @@ function getProducts()
        FETCH PRODUCTS
     ========================== */
     $sql = "
-        SELECT
-            id,
-            category_id,
-            name,
-            description,
-            sizes,
-            discount_percentage,
-            image,
-            is_popular,
-            is_featured,
-            created_at
-        FROM products
-        $whereSQL
-        ORDER BY created_at DESC
-        LIMIT ? OFFSET ?
-    ";
+    SELECT
+        p.id,
+        p.category_id,
+        p.name,
+        p.description,
+        p.sizes,
+        p.discount_percentage,
+        p.image,
+        p.is_popular,
+        p.is_featured,
+        p.created_at,
+
+        IFNULL(AVG(pr.rating), 0) AS avg_rating,
+        COUNT(pr.id) AS total_reviews
+
+    FROM products p
+
+    LEFT JOIN product_reviews pr 
+        ON pr.product_id = p.id 
+        AND pr.approval_status = 'approved'
+
+    $whereSQL
+
+    GROUP BY p.id
+
+    ORDER BY p.created_at DESC
+    LIMIT ? OFFSET ?
+";
 
     $stmt = $conn->prepare($sql);
 
@@ -113,6 +125,9 @@ function getProducts()
             'is_popular' => (bool)$row['is_popular'],
             'is_featured' => (bool)$row['is_featured'],
             'created_at' => $row['created_at'],
+
+            'avg_rating' => $row['avg_rating'],
+            'total_reviews' => $row['total_reviews'],
         ];
     }
 
@@ -132,4 +147,3 @@ function getProducts()
         ]
     ];
 }
-

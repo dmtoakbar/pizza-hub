@@ -56,7 +56,7 @@
              </p>
            </a>
 
-           <ul class="nav nav-treeview" >
+           <ul class="nav nav-treeview">
              <li class="nav-item">
                <a href="products.php" class="nav-link">
                  <i class="nav-icon fas fa-box"></i>
@@ -80,6 +80,17 @@
              <i class="nav-icon fas fa-pizza-slice"></i>
              <p>
                Extra Toppings
+             </p>
+           </a>
+         </li>
+
+
+
+         <li class="nav-item">
+           <a href="customer_reviews.php" class="nav-link">
+              <i class="nav-icon fas fa-star"></i>
+             <p>
+               Reviews & Rating
              </p>
            </a>
          </li>
