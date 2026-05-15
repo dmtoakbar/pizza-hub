@@ -128,6 +128,11 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             send_json(getProductRatingSummary());
             break;
 
+         case 'promo-sliders':
+            require_once __DIR__ . '/../features/promoSlider/promo-slider.php';
+            send_json(getPromoSliders());
+            break;
+
         default:
             send_json(['error' => 'Invalid route'], 404);
     }

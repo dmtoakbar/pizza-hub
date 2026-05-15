@@ -43,7 +43,13 @@
          <li class="nav-item">
            <a href="home-banners.php" class="nav-link">
              <i class="nav-icon fas fa-images"></i>
-             <p>Home Banners</p>
+             <p>Home Carousel</p>
+           </a>
+         </li>
+         <li class="nav-item">
+           <a href="promo-slider-banners.php" class="nav-link">
+             <i class="nav-icon fas fa-images"></i>
+             <p>Promo Banner</p>
            </a>
          </li>
 
@@ -88,7 +94,7 @@
 
          <li class="nav-item">
            <a href="customer_reviews.php" class="nav-link">
-              <i class="nav-icon fas fa-star"></i>
+             <i class="nav-icon fas fa-star"></i>
              <p>
                Reviews & Rating
              </p>

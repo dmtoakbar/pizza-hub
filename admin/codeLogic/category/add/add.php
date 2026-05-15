@@ -12,13 +12,24 @@ if (isset($_POST['addCategory'])) {
 
     $name = trim($_POST['name']);
 
+    $show_toppings = isset($_POST['show_toppings'])
+        ? (int) $_POST['show_toppings']
+        : 1;
+
+    $show_sizes = isset($_POST['show_sizes'])
+        ? (int) $_POST['show_sizes']
+        : 1;
+
     /* =========================
        VALIDATION
     ========================== */
 
     if ($name === '') {
+
         $_SESSION['status'] = "Category name is required!";
+
         header("Location: ./categories.php");
+
         exit;
     }
 
@@ -26,33 +37,58 @@ if (isset($_POST['addCategory'])) {
        IMAGE UPLOAD
     ========================== */
 
-    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== 0) {
+    if (
+        !isset($_FILES['image']) ||
+        $_FILES['image']['error'] !== 0
+    ) {
+
         $_SESSION['status'] = "Category image is required!";
+
         header("Location: ./categories.php");
+
         exit;
     }
 
     $allowedTypes = ['jpg', 'jpeg', 'png', 'webp'];
-    $imageExt = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+
+    $imageExt = strtolower(
+        pathinfo(
+            $_FILES['image']['name'],
+            PATHINFO_EXTENSION
+        )
+    );
 
     if (!in_array($imageExt, $allowedTypes)) {
+
         $_SESSION['status'] = "Invalid image type!";
+
         header("Location: ./categories.php");
+
         exit;
     }
 
     $imageName = uniqid('category_', true) . '.' . $imageExt;
+
     $uploadDir = __DIR__ . '/../../../../storage/categories/';
 
     if (!is_dir($uploadDir)) {
+
         mkdir($uploadDir, 0777, true);
     }
 
     $imagePath = $uploadDir . $imageName;
 
-    if (!move_uploaded_file($_FILES['image']['tmp_name'], $imagePath)) {
+    if (
+        !move_uploaded_file(
+            $_FILES['image']['tmp_name'],
+            $imagePath
+        )
+    ) {
+
         $_SESSION['status'] = "Image upload failed!";
+
         header("Location: ./categories.php");
+
         exit;
     }
 
@@ -61,29 +97,42 @@ if (isset($_POST['addCategory'])) {
     ========================== */
 
     $categoryId  = Uuid::uuid4()->toString();
+
     $imageDbPath = 'categories/' . $imageName;
 
     $stmt = $conn->prepare("
         INSERT INTO categories
-        (id, name, image)
-        VALUES (?, ?, ?)
+        (
+            id,
+            name,
+            image,
+            show_toppings,
+            show_sizes
+        )
+        VALUES (?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "sss",
+        "sssii",
         $categoryId,
         $name,
-        $imageDbPath
+        $imageDbPath,
+        $show_toppings,
+        $show_sizes
     );
 
     if ($stmt->execute()) {
+
         $_SESSION['status'] = "Category added successfully!";
+
     } else {
+
         $_SESSION['status'] = "Failed to add category!";
     }
 
     $stmt->close();
 
     header("Location: ./categories.php");
+
     exit;
 }

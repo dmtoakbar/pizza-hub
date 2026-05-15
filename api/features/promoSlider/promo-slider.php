@@ -5,51 +5,53 @@ require_once __DIR__ . '/../../../config/database.php';
 
 header('Content-Type: application/json');
 
-function getCategories()
+function getPromoSliders()
 {
     global $conn;
 
     /* =========================
        QUERY PARAMS
     ========================== */
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+    $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
-    $limit = isset($_GET['limit'])
-        ? (int)$_GET['limit']
-        : 20;
-
-    $page = isset($_GET['page'])
-        ? (int)$_GET['page']
-        : 1;
-
-    $limit = ($limit > 0 && $limit <= 100)
-        ? $limit
-        : 20;
-
-    $page = ($page > 0)
-        ? $page
-        : 1;
-
+    $limit  = ($limit > 0 && $limit <= 50) ? $limit : 10;
+    $page   = ($page > 0) ? $page : 1;
     $offset = ($page - 1) * $limit;
+
+    $currentDate = date('Y-m-d H:i:s');
 
     /* =========================
        WHERE CONDITIONS
     ========================== */
-
-    $conditions = ['status = 1'];
-
-    $whereSQL = 'WHERE ' . implode(' AND ', $conditions);
+    $whereSQL = "
+    WHERE status = 1
+    AND (
+        start_date IS NULL
+        OR start_date <= ?
+    )
+    AND (
+        end_date IS NULL
+        OR end_date >= ?
+    )
+";
 
     /* =========================
        COUNT TOTAL
     ========================== */
-
     $countSql = "
         SELECT COUNT(*) AS total
-        FROM categories
+        FROM promo_slider_banners
         $whereSQL
     ";
 
     $countStmt = $conn->prepare($countSql);
+
+    $countStmt->bind_param(
+        "ss",
+        $currentDate,
+        $currentDate
+    );
 
     $countStmt->execute();
 
@@ -60,61 +62,42 @@ function getCategories()
     $countStmt->close();
 
     /* =========================
-       FETCH CATEGORIES
+       FETCH PROMO SLIDERS
     ========================== */
-
     $sql = "
         SELECT
             id,
-            name,
+            title,
+            subtitle,
             image,
-
-            show_toppings,
-            show_sizes,
-
+            button_text,
             sort_order,
+            start_date,
+            end_date,
             created_at
-
-        FROM categories
-
-        $whereSQL
-
-        ORDER BY sort_order ASC, created_at DESC
-
-        LIMIT ? OFFSET ?
+        FROM promo_slider_banners
     ";
 
     $stmt = $conn->prepare($sql);
-
-    $stmt->bind_param('ii', $limit, $offset);
 
     $stmt->execute();
 
     $result = $stmt->get_result();
 
-    $categories = [];
+    $sliders = [];
 
     while ($row = $result->fetch_assoc()) {
 
-        $categories[] = [
-
-            'id' => $row['id'],
-
-            'name' => $row['name'],
-
-            'image' => $row['image'],
-
-            'show_toppings' =>
-                (int)$row['show_toppings'],
-
-            'show_sizes' =>
-                (int)$row['show_sizes'],
-
-            'sort_order' =>
-                (int)$row['sort_order'],
-
-            'created_at' =>
-                $row['created_at'],
+        $sliders[] = [
+            'id'           => $row['id'],
+            'title'        => $row['title'],
+            'subtitle'     => $row['subtitle'],
+            'image'        => $row['image'],
+            'button_text'  => $row['button_text'],
+            'sort_order'   => (int)$row['sort_order'],
+            'start_date'   => $row['start_date'],
+            'end_date'     => $row['end_date'],
+            'created_at'   => $row['created_at'],
         ];
     }
 
@@ -123,21 +106,15 @@ function getCategories()
     /* =========================
        RESPONSE
     ========================== */
-
     return [
-
         'success' => true,
 
-        'data' => $categories,
+        'data' => $sliders,
 
         'pagination' => [
-
-            'total' => $total,
-
-            'page' => $page,
-
-            'limit' => $limit,
-
+            'total'       => $total,
+            'page'        => $page,
+            'limit'       => $limit,
             'total_pages' => ceil($total / $limit),
         ]
     ];

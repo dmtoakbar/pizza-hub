@@ -13,7 +13,8 @@ $uri = preg_replace("#^$basePath/#", '', $uri);
 
 
 if (!function_exists('getallheaders')) {
-    function getallheaders() {
+    function getallheaders()
+    {
         $headers = [];
         foreach ($_SERVER as $name => $value) {
             if (substr($name, 0, 5) == 'HTTP_') {
@@ -41,13 +42,20 @@ if (str_starts_with($uri, 'media/')) {
 
 // 🔐 API ROUTES ONLY
 if (str_contains($uri, $apiBasePath)) {
+    require_once __DIR__ . '/../config/index.php';
+
+    verify_api_key($headers);
+    require_once __DIR__ . '/../api/api-route/route.php';
+    exit;
+}
+
+
+//create tables route (no auth, for now)
+if (str_contains($uri, 'create-table')) {
 
     require_once __DIR__ . '/../config/index.php';
     require_once __DIR__ . '/../api/schema/tables.php';
     createTables($conn);
-
-    verify_api_key($headers);
-    require_once __DIR__ . '/../api/api-route/route.php';
     exit;
 }
 

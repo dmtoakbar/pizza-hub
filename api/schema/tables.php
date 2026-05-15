@@ -199,6 +199,33 @@ function createTables($conn)
     }
 
     // end home banner ============
+    $promoSliderTable = "
+    CREATE TABLE IF NOT EXISTS promo_slider_banners (
+        id CHAR(36) NOT NULL PRIMARY KEY,
+
+        title VARCHAR(150) NOT NULL,
+        subtitle VARCHAR(255) DEFAULT NULL,
+
+        image VARCHAR(255) NOT NULL,
+
+        button_text VARCHAR(100) DEFAULT NULL,
+
+        status TINYINT(1) DEFAULT 1 COMMENT '1 = active, 0 = inactive',
+
+        sort_order INT DEFAULT 0,
+
+        start_date DATETIME NULL,
+        end_date DATETIME NULL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB;
+    ";
+
+    if (!$conn->query($promoSliderTable)) {
+        throw new Exception("Promo slider banner table error: " . $conn->error);
+    }
 
     // ================= categories
 
@@ -504,4 +531,15 @@ function createTables($conn)
          if (!$conn->query($productReviewsTable)) {
         throw new Exception("Rating table error: " . $conn->error);
     }
+
+
+     $conn->query("
+        ALTER TABLE categories
+        ADD COLUMN IF NOT EXISTS show_toppings TINYINT(1) NULL DEFAULT NULL
+    ");
+
+    $conn->query("
+        ALTER TABLE categories
+        ADD COLUMN IF NOT EXISTS show_sizes TINYINT(1) NULL DEFAULT NULL
+    ");
 }

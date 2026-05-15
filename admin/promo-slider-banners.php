@@ -7,10 +7,10 @@ include('./authentication/authentication.php');
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/constants/constants.php';
 
-// /* HOME BANNER LOGIC */
-include('codeLogic/homeBanner/add/add.php');
-include('codeLogic/homeBanner/edit/edit.php');
-include('codeLogic/homeBanner/delete/delete.php');
+/* PROMO SLIDER LOGIC */
+include('codeLogic/homePromoBanner/add/add.php');
+include('codeLogic/homePromoBanner/edit/edit.php');
+include('codeLogic/homePromoBanner/delete/delete.php');
 
 include('include/header.php');
 include('include/topbar.php');
@@ -19,19 +19,20 @@ include('include/sidebar.php');
 
 <div class="content-wrapper">
 
-    <!-- ================= ADD HOME BANNER MODAL ================= -->
-    <div class="modal fade" id="AddBannerModal" tabindex="-1">
+    <!-- ================= ADD MODAL ================= -->
+    <div class="modal fade" id="AddPromoSliderModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Home Carousel</h5>
+                    <h5 class="modal-title">Add Promo Slider Banner</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
                 </div>
 
                 <form method="POST" enctype="multipart/form-data">
+
                     <div class="modal-body">
 
                         <div class="form-group">
@@ -45,18 +46,23 @@ include('include/sidebar.php');
                         </div>
 
                         <div class="form-group">
-                            <label>Discount Text</label>
-                            <input type="text" name="discount_text" class="form-control" placeholder="UP TO 70% OFF">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Valid Till</label>
-                            <input type="date" name="valid_till" class="form-control">
+                            <label>Button Text</label>
+                            <input type="text" name="button_text" class="form-control" placeholder="Order Now">
                         </div>
 
                         <div class="form-group">
                             <label>Sort Order</label>
                             <input type="number" name="sort_order" class="form-control" value="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="datetime-local" name="start_date" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="datetime-local" name="end_date" class="form-control">
                         </div>
 
                         <div class="form-group">
@@ -68,21 +74,22 @@ include('include/sidebar.php');
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" name="addHomeBanner" class="btn btn-primary">Add</button>
+                        <button type="submit" name="addPromoSlider" class="btn btn-primary">Add Banner</button>
                     </div>
+
                 </form>
 
             </div>
         </div>
     </div>
 
-    <!-- ================= UPDATE HOME BANNER MODAL ================= -->
-    <div class="modal fade" id="UpdateBannerModal" tabindex="-1">
+    <!-- ================= UPDATE MODAL ================= -->
+    <div class="modal fade" id="UpdatePromoSliderModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Update Home Carousel</h5>
+                    <h5 class="modal-title">Update Promo Slider Banner</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -106,13 +113,8 @@ include('include/sidebar.php');
                         </div>
 
                         <div class="form-group">
-                            <label>Discount Text</label>
-                            <input type="text" name="discount_text" id="edit_discount_text" class="form-control">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Valid Till</label>
-                            <input type="date" name="valid_till" id="edit_valid_till" class="form-control">
+                            <label>Button Text</label>
+                            <input type="text" name="button_text" id="edit_button_text" class="form-control">
                         </div>
 
                         <div class="form-group">
@@ -121,21 +123,40 @@ include('include/sidebar.php');
                         </div>
 
                         <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="datetime-local" name="start_date" id="edit_start_date" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="datetime-local" name="end_date" id="edit_end_date" class="form-control">
+                        </div>
+
+                        <div class="form-group">
                             <label>Change Image</label>
                             <input type="file" name="image" class="form-control">
-                            <small class="text-muted">Leave empty to keep existing image</small>
                         </div>
 
                         <div class="form-group">
                             <label>Current Image</label><br>
-                            <img id="edit_image" width="120" style="border-radius:6px;">
+                            <img id="edit_image" width="120" style="border-radius:8px;">
+                        </div>
+
+
+                        <div class="form-group">
+                            <label>Status</label>
+
+                            <select name="status" id="edit_status" class="form-control">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
                         </div>
 
                     </div>
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" name="updateHomeBanner" class="btn btn-success">Update</button>
+                        <button type="submit" name="updatePromoSlider" class="btn btn-success">Update</button>
                     </div>
 
                 </form>
@@ -144,62 +165,69 @@ include('include/sidebar.php');
         </div>
     </div>
 
-    <!-- ================= DELETE HOME BANNER MODAL ================= -->
-    <div class="modal fade" id="DeleteBannerModal" tabindex="-1">
+    <!-- ================= DELETE MODAL ================= -->
+    <div class="modal fade" id="DeletePromoSliderModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Delete Home Carousel</h5>
+                    <h5 class="modal-title">Delete Promo Slider Banner</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
                 </div>
 
                 <form method="POST">
+
                     <div class="modal-body">
                         <input type="hidden" name="delete_id" class="delete_banner_id">
-                        <p>Are you sure you want to delete this Carousel?</p>
+                        <p>Are you sure you want to delete this banner?</p>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" name="deleteHomeBanner" class="btn btn-danger">Yes, Delete!</button>
+                        <button type="submit" name="deletePromoSlider" class="btn btn-danger">Delete</button>
                     </div>
+
                 </form>
 
             </div>
         </div>
     </div>
 
-    <!-- ================= HEADER ================= -->
+    <!-- ================= PAGE HEADER ================= -->
     <div class="content-header">
         <div class="container-fluid">
-            <h1 class="m-0">Home Carousels</h1>
+            <h1 class="m-0">Promo Slider Banners</h1>
         </div>
     </div>
 
     <!-- ================= TABLE ================= -->
     <div class="container">
+
         <?php include('./message/message.php'); ?>
 
         <div class="card">
+
             <div class="card-header">
-                <h3 class="card-title">Banner Carousels</h3>
+                <h3 class="card-title">Promo Slider List</h3>
+
                 <button class="btn btn-primary btn-sm float-right"
                     data-toggle="modal"
-                    data-target="#AddBannerModal">
-                    Add Carousel
+                    data-target="#AddPromoSliderModal">
+                    Add Promo Banner
                 </button>
             </div>
 
             <div class="card-body">
+
                 <table id="example1" class="table table-bordered table-striped">
+
                     <thead>
                         <tr>
                             <th>Sr</th>
                             <th>Title</th>
-                            <th>Discount</th>
-                            <th>Valid Till</th>
+                            <th>Button</th>
                             <th>Sort</th>
                             <th>Image</th>
                             <th>Action</th>
@@ -207,50 +235,71 @@ include('include/sidebar.php');
                     </thead>
 
                     <tbody>
+
                         <?php
-                        $query = "SELECT * FROM home_banners ORDER BY sort_order ASC, created_at DESC";
+                        $query = "SELECT * FROM promo_slider_banners 
+                                  ORDER BY sort_order ASC, created_at DESC";
+
                         $run = mysqli_query($conn, $query);
+
                         $n = 0;
 
                         while ($row = mysqli_fetch_assoc($run)):
                             $n++;
                         ?>
+
                             <tr>
+
                                 <td><?= $n ?></td>
+
                                 <td><?= htmlspecialchars($row['title']) ?></td>
-                                <td><?= htmlspecialchars($row['discount_text']) ?></td>
-                                <td><?= htmlspecialchars($row['valid_till']) ?></td>
+
+                                <td><?= htmlspecialchars($row['button_text']) ?></td>
+
                                 <td><?= (int)$row['sort_order'] ?></td>
+
                                 <td>
                                     <img src="<?= $mediaPath . $row['image'] ?>"
-                                        width="80"
-                                        height="50"
-                                        style="object-fit:cover;">
+                                        width="90"
+                                        height="55"
+                                        style="object-fit:cover;border-radius:8px;">
                                 </td>
+
                                 <td>
+
                                     <button
                                         class="btn btn-sm btn-info editBtn"
+
                                         data-id="<?= $row['id'] ?>"
                                         data-title="<?= htmlspecialchars($row['title']) ?>"
                                         data-subtitle="<?= htmlspecialchars($row['subtitle']) ?>"
-                                        data-discount="<?= htmlspecialchars($row['discount_text']) ?>"
-                                        data-valid="<?= $row['valid_till'] ?>"
+                                        data-button="<?= htmlspecialchars($row['button_text']) ?>"
                                         data-sort="<?= $row['sort_order'] ?>"
+                                        data-start="<?= $row['start_date'] ?>"
+                                        data-end="<?= $row['end_date'] ?>"
+                                        data-status="<?= $row['status'] ?>"
                                         data-image="<?= $row['image'] ?>">
+
                                         Edit
                                     </button>
 
                                     <button
                                         class="btn btn-sm btn-danger deleteBtn"
                                         value="<?= $row['id'] ?>">
+
                                         Delete
                                     </button>
+
                                 </td>
+
                             </tr>
+
                         <?php endwhile; ?>
+
                     </tbody>
 
                 </table>
+
             </div>
         </div>
     </div>
@@ -264,7 +313,7 @@ include('include/sidebar.php');
 
         $('.deleteBtn').click(function() {
             $('.delete_banner_id').val($(this).val());
-            $('#DeleteBannerModal').modal('show');
+            $('#DeletePromoSliderModal').modal('show');
         });
 
         $('.editBtn').click(function() {
@@ -272,15 +321,21 @@ include('include/sidebar.php');
             $('#edit_id').val($(this).data('id'));
             $('#edit_title').val($(this).data('title'));
             $('#edit_subtitle').val($(this).data('subtitle'));
-            $('#edit_discount_text').val($(this).data('discount'));
-            $('#edit_valid_till').val($(this).data('valid'));
+            $('#edit_button_text').val($(this).data('button'));
             $('#edit_sort_order').val($(this).data('sort'));
-
+            $('#edit_start_date').val($(this).data('start'));
+            $('#edit_end_date').val($(this).data('end'));
+            $('#edit_status').val($(this).data('status'));
             const imagePath = $(this).data('image');
-            $('#edit_old_image').val(imagePath);
-            $('#edit_image').attr('src', '<?= $mediaPath ?>' + imagePath);
 
-            $('#UpdateBannerModal').modal('show');
+            $('#edit_old_image').val(imagePath);
+
+            $('#edit_image').attr(
+                'src',
+                '<?= $mediaPath ?>' + imagePath
+            );
+
+            $('#UpdatePromoSliderModal').modal('show');
         });
 
     });
