@@ -31,6 +31,7 @@ function getUserById()
             phone,
             address,
             email,
+            user_profile,
             email_verified,
             created_at
         FROM users

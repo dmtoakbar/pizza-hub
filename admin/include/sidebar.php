@@ -82,6 +82,15 @@
          </li>
 
          <li class="nav-item">
+           <a href="offers.php" class="nav-link">
+             <i class="nav-icon fas fa-tags"></i>
+             <p>
+               Offers
+             </p>
+           </a>
+         </li>
+
+         <li class="nav-item">
            <a href="toppings.php" class="nav-link">
              <i class="nav-icon fas fa-pizza-slice"></i>
              <p>

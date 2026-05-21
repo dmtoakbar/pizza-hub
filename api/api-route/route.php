@@ -128,9 +128,24 @@ if (str_contains($uri, "$apiBasePath/" . $allowedVersions[0])) {
             send_json(getProductRatingSummary());
             break;
 
-         case 'promo-sliders':
+        case 'promo-sliders':
             require_once __DIR__ . '/../features/promoSlider/promo-slider.php';
             send_json(getPromoSliders());
+            break;
+
+        case 'track-order':
+            require_once __DIR__ . '/../features/orders/trackOrder/track_order.php';
+            send_json(trackOrder());
+            break;
+
+        case 'offer-list':
+            require_once __DIR__ . '/../features/offer/getOffer/get-offer.php';
+            send_json(getOffers());
+            break;
+
+        case 'apply-offer':
+            require_once __DIR__ . '/../features/offer/applyOffer/apply-offer.php';
+            send_json(validateAndApplyCoupon());
             break;
 
         default:

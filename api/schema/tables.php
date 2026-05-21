@@ -528,12 +528,12 @@ function createTables($conn)
         ) ENGINE=InnoDB;
         ";
 
-         if (!$conn->query($productReviewsTable)) {
+    if (!$conn->query($productReviewsTable)) {
         throw new Exception("Rating table error: " . $conn->error);
     }
 
 
-     $conn->query("
+    $conn->query("
         ALTER TABLE categories
         ADD COLUMN IF NOT EXISTS show_toppings TINYINT(1) NULL DEFAULT NULL
     ");
@@ -542,4 +542,155 @@ function createTables($conn)
         ALTER TABLE categories
         ADD COLUMN IF NOT EXISTS show_sizes TINYINT(1) NULL DEFAULT NULL
     ");
+
+
+    $conn->query("
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS user_profile VARCHAR(255) NULL
+");
+
+
+    /* =========================================================
+   COUPONS / OFFERS TABLE
+========================================================= */
+
+    $couponTable = "
+CREATE TABLE IF NOT EXISTS coupons (
+
+    /* =========================
+       PRIMARY
+    ========================== */
+    id CHAR(36) NOT NULL PRIMARY KEY,
+
+    /* =========================
+       COUPON INFO
+    ========================== */
+    code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(150) NOT NULL,
+    description VARCHAR(255) DEFAULT NULL,
+
+    /* =========================
+       OFFER TYPE
+       all
+       bank_offer
+       combo_offer
+       free_delivery
+       new_user
+    ========================== */
+    offer_type ENUM(
+        'all',
+        'bank_offer',
+        'combo_offer',
+        'free_delivery',
+        'new_user'
+    ) DEFAULT 'all',
+
+    /* =========================
+       DISCOUNT
+       percentage = 10%
+       flat = $5 OFF
+       free_delivery
+    ========================== */
+    discount_type ENUM(
+        'percentage',
+        'flat',
+        'free_delivery'
+    ) NOT NULL DEFAULT 'percentage',
+
+    discount_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+
+    /* Max cap
+       Example:
+       10% OFF up to $5
+       => max_discount_amount = 5
+    */
+    max_discount_amount DECIMAL(10,2) DEFAULT NULL,
+
+    /* =========================
+       ORDER RULES
+    ========================== */
+
+    min_order_amount DECIMAL(10,2) DEFAULT 0,
+
+    /* =========================
+       USAGE LIMITS
+    ========================== */
+
+    usage_limit INT DEFAULT NULL,
+    used_count INT DEFAULT 0,
+
+    usage_per_user INT DEFAULT 1,
+
+    /* =========================
+       USER RULES
+    ========================== */
+
+    is_new_user_only TINYINT(1) DEFAULT 0,
+
+    /* =========================
+       OPTIONAL RESTRICTIONS
+    ========================== */
+
+    category_id CHAR(36) NULL,
+    product_id CHAR(36) NULL,
+
+    /* =========================
+       UI FIELDS
+    ========================== */
+
+    badge_text VARCHAR(100) DEFAULT NULL,
+
+    coupon_image VARCHAR(255) DEFAULT NULL,
+
+    background_color VARCHAR(20)
+        DEFAULT '#F7F1EB',
+
+    button_text VARCHAR(50)
+        DEFAULT 'Apply',
+
+    /* =========================
+       DATE VALIDITY
+    ========================== */
+
+    start_date DATETIME NULL,
+    end_date DATETIME NULL,
+
+    /* =========================
+       STATUS
+    ========================== */
+
+    status TINYINT(1) DEFAULT 1
+        COMMENT '1 = active, 0 = inactive',
+
+    /* =========================
+       TIMESTAMPS
+    ========================== */
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    /* =========================
+       FOREIGN KEYS
+    ========================== */
+
+    CONSTRAINT fk_coupon_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_coupon_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(id)
+        ON DELETE SET NULL
+
+) ENGINE=InnoDB;
+";
+
+    if (!$conn->query($couponTable)) {
+        throw new Exception(
+            'Coupon table error: ' . $conn->error
+        );
+    }
 }
