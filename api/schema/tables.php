@@ -555,142 +555,183 @@ function createTables($conn)
 ========================================================= */
 
     $couponTable = "
-CREATE TABLE IF NOT EXISTS coupons (
+    CREATE TABLE IF NOT EXISTS coupons (
 
-    /* =========================
-       PRIMARY
-    ========================== */
-    id CHAR(36) NOT NULL PRIMARY KEY,
+        /* =========================
+        PRIMARY
+        ========================== */
+        id CHAR(36) NOT NULL PRIMARY KEY,
 
-    /* =========================
-       COUPON INFO
-    ========================== */
-    code VARCHAR(50) NOT NULL UNIQUE,
-    title VARCHAR(150) NOT NULL,
-    description VARCHAR(255) DEFAULT NULL,
+        /* =========================
+        COUPON INFO
+        ========================== */
+        code VARCHAR(50) NOT NULL UNIQUE,
+        title VARCHAR(150) NOT NULL,
+        description VARCHAR(255) DEFAULT NULL,
 
-    /* =========================
-       OFFER TYPE
-       all
-       bank_offer
-       combo_offer
-       free_delivery
-       new_user
-    ========================== */
-    offer_type ENUM(
-        'all',
-        'bank_offer',
-        'combo_offer',
-        'free_delivery',
-        'new_user'
-    ) DEFAULT 'all',
+        /* =========================
+        OFFER TYPE
+        all
+        bank_offer
+        combo_offer
+        free_delivery
+        new_user
+        ========================== */
+        offer_type ENUM(
+            'all',
+            'bank_offer',
+            'combo_offer',
+            'free_delivery',
+            'new_user'
+        ) DEFAULT 'all',
 
-    /* =========================
-       DISCOUNT
-       percentage = 10%
-       flat = $5 OFF
-       free_delivery
-    ========================== */
-    discount_type ENUM(
-        'percentage',
-        'flat',
-        'free_delivery'
-    ) NOT NULL DEFAULT 'percentage',
+        /* =========================
+        DISCOUNT
+        percentage = 10%
+        flat = $5 OFF
+        free_delivery
+        ========================== */
+        discount_type ENUM(
+            'percentage',
+            'flat',
+            'free_delivery'
+        ) NOT NULL DEFAULT 'percentage',
 
-    discount_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+        discount_value DECIMAL(10,2) NOT NULL DEFAULT 0,
 
-    /* Max cap
-       Example:
-       10% OFF up to $5
-       => max_discount_amount = 5
-    */
-    max_discount_amount DECIMAL(10,2) DEFAULT NULL,
+        /* Max cap
+        Example:
+        10% OFF up to $5
+        => max_discount_amount = 5
+        */
+        max_discount_amount DECIMAL(10,2) DEFAULT NULL,
 
-    /* =========================
-       ORDER RULES
-    ========================== */
+        /* =========================
+        ORDER RULES
+        ========================== */
 
-    min_order_amount DECIMAL(10,2) DEFAULT 0,
+        min_order_amount DECIMAL(10,2) DEFAULT 0,
 
-    /* =========================
-       USAGE LIMITS
-    ========================== */
+        /* =========================
+        USAGE LIMITS
+        ========================== */
 
-    usage_limit INT DEFAULT NULL,
-    used_count INT DEFAULT 0,
+        usage_limit INT DEFAULT NULL,
+        used_count INT DEFAULT 0,
 
-    usage_per_user INT DEFAULT 1,
+        usage_per_user INT DEFAULT 1,
 
-    /* =========================
-       USER RULES
-    ========================== */
+        /* =========================
+        USER RULES
+        ========================== */
 
-    is_new_user_only TINYINT(1) DEFAULT 0,
+        is_new_user_only TINYINT(1) DEFAULT 0,
 
-    /* =========================
-       OPTIONAL RESTRICTIONS
-    ========================== */
+        /* =========================
+        OPTIONAL RESTRICTIONS
+        ========================== */
 
-    category_id CHAR(36) NULL,
-    product_id CHAR(36) NULL,
+        category_id CHAR(36) NULL,
+        product_id CHAR(36) NULL,
 
-    /* =========================
-       UI FIELDS
-    ========================== */
+        /* =========================
+        UI FIELDS
+        ========================== */
 
-    badge_text VARCHAR(100) DEFAULT NULL,
+        badge_text VARCHAR(100) DEFAULT NULL,
 
-    coupon_image VARCHAR(255) DEFAULT NULL,
+        coupon_image VARCHAR(255) DEFAULT NULL,
 
-    background_color VARCHAR(20)
-        DEFAULT '#F7F1EB',
+        background_color VARCHAR(20)
+            DEFAULT '#F7F1EB',
 
-    button_text VARCHAR(50)
-        DEFAULT 'Apply',
+        button_text VARCHAR(50)
+            DEFAULT 'Apply',
 
-    /* =========================
-       DATE VALIDITY
-    ========================== */
+        /* =========================
+        DATE VALIDITY
+        ========================== */
 
-    start_date DATETIME NULL,
-    end_date DATETIME NULL,
+        start_date DATETIME NULL,
+        end_date DATETIME NULL,
 
-    /* =========================
-       STATUS
-    ========================== */
+        /* =========================
+        STATUS
+        ========================== */
 
-    status TINYINT(1) DEFAULT 1
-        COMMENT '1 = active, 0 = inactive',
+        status TINYINT(1) DEFAULT 1
+            COMMENT '1 = active, 0 = inactive',
 
-    /* =========================
-       TIMESTAMPS
-    ========================== */
+        /* =========================
+        TIMESTAMPS
+        ========================== */
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP,
 
-    /* =========================
-       FOREIGN KEYS
-    ========================== */
+        /* =========================
+        FOREIGN KEYS
+        ========================== */
 
-    CONSTRAINT fk_coupon_category
-        FOREIGN KEY (category_id)
-        REFERENCES categories(id)
-        ON DELETE SET NULL,
+        CONSTRAINT fk_coupon_category
+            FOREIGN KEY (category_id)
+            REFERENCES categories(id)
+            ON DELETE SET NULL,
 
-    CONSTRAINT fk_coupon_product
-        FOREIGN KEY (product_id)
-        REFERENCES products(id)
-        ON DELETE SET NULL
+        CONSTRAINT fk_coupon_product
+            FOREIGN KEY (product_id)
+            REFERENCES products(id)
+            ON DELETE SET NULL
 
-) ENGINE=InnoDB;
-";
+    ) ENGINE=InnoDB;
+    ";
 
     if (!$conn->query($couponTable)) {
         throw new Exception(
             'Coupon table error: ' . $conn->error
+        );
+    }
+
+
+    /* =========================================================
+   COUPON USAGES TABLE
+========================================================= */
+
+    $couponUsageTable = "
+    CREATE TABLE IF NOT EXISTS coupon_usages (
+
+        id INT AUTO_INCREMENT PRIMARY KEY,
+
+        user_id CHAR(36) NOT NULL,
+
+        coupon_id CHAR(36) NOT NULL,
+
+        order_id CHAR(36) DEFAULT NULL,
+
+        used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        INDEX idx_user (user_id),
+
+        INDEX idx_coupon (coupon_id),
+
+        CONSTRAINT fk_coupon_usage_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT fk_coupon_usage_coupon
+            FOREIGN KEY (coupon_id)
+            REFERENCES coupons(id)
+            ON DELETE CASCADE
+
+    ) ENGINE=InnoDB;
+    ";
+
+    if (!$conn->query($couponUsageTable)) {
+        throw new Exception(
+            'Coupon usages table error: ' . $conn->error
         );
     }
 }

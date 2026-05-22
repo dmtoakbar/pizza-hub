@@ -38,6 +38,11 @@ switch ($uri) {
         send_json(deleteUser());
         break;
 
+     case 'auth/change-password':
+         require_once __DIR__ . '/../features/auth/changePassword/change-password.php';
+         send_json(changePassword());
+         break;
+
     default:
         send_json(['error' => 'Invalid route'], 404);
 }
